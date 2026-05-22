@@ -109,11 +109,15 @@
             <el-table-column label="补助城市">
               <template #default="{ row }">{{ getCityName(row.endCity) }}</template>
             </el-table-column>
-            <el-table-column label="申请金额">
-              <template #default="{ row }">{{ row.applyAmount.toFixed(2) }}</template>
+            <el-table-column label="申请金额" width="120" align="right">
+              <template #default="{ row }">
+                {{ row.applyAmount ? row.applyAmount.toFixed(2) : '0.00' }}
+              </template>
             </el-table-column>
-            <el-table-column label="补助金额">
-              <template #default="{ row }">{{ row.subsidyAmount.toFixed(2) }}</template>
+            <el-table-column label="补助金额" width="120" align="right">
+              <template #default="{ row }">
+                {{ row.subsidyAmount ? row.subsidyAmount.toFixed(2) : '0.00' }}
+              </template>
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ row, $index }">
@@ -403,9 +407,40 @@ onMounted(async () => {
         res.createTime = res.creationTime
 
         Object.assign(formData, res)
+        
+        // 【修复点】：由于我们表单上绑定的是 formData.reimbursementTitle， formData.reimburserId 等，
+        // Object.assign(formData, res) 实际上已经把后端的 reimbursementTitle 等字段赋给 formData 了。
+        // 但如果有些组件强绑定了 formData.title 等别名，我们在上面映射一下也是可以的。
+        // 为了确保 Vue 模板上双向绑定的 reimbursementTitle, reimburserId 等有值，这里确保它们存在
+        formData.reimbursementTitle = res.reimbursementTitle || res.title
+        formData.reimburserId = res.reimburserId || res.employeeId
+        formData.reimDepartmentId = res.reimDepartmentId || res.departmentId
+        formData.reimCompanyId = res.reimCompanyId || res.companyId
+        formData.businessTypeId = res.businessTypeId
+        formData.businessTripReason = res.businessTripReason || res.reason
+
         // Ensure properties exists if backend only has partial fields
         if(!formData.itineraries) formData.itineraries = []
         if(!formData.subsidies) formData.subsidies = []
+        
+        // 修复补助信息回显金额和天数的计算
+        formData.subsidies.forEach(sub => {
+          sub.days = sub.days || (sub.calendar ? sub.calendar.length : 0)
+          
+          let apply = 0
+          let amount = 0
+          if (sub.calendar && sub.calendar.length > 0) {
+            sub.calendar.forEach(cal => {
+              apply += (cal.mealStandard || 0) + (cal.trafficStandard || 0) + (cal.commStandard || 0)
+              amount += (cal.mealSelected ? (cal.mealAmount || 0) : 0) + 
+                        (cal.trafficSelected ? (cal.trafficAmount || 0) : 0) + 
+                        (cal.commSelected ? (cal.commAmount || 0) : 0)
+            })
+          }
+          sub.applyAmount = apply
+          sub.subsidyAmount = amount
+        })
+
         if(!formData.apportionments || formData.apportionments.length === 0) formData.apportionments = [{ companyId: formData.reimCompanyId, projectId: '', percent: 100, amount: Number(formData.subsidyTotal || 0) }]
       }
     } catch(err) {
@@ -789,9 +824,8 @@ const handleSaveDraft = () => {
   if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
 
   const payload = JSON.parse(JSON.stringify(formData))
-  delete payload.itineraries
-  delete payload.subsidies
-  delete payload.apportionments
+  // 【移除】因为前端模板 v-model 绑定的已经是 formData.reimbursementTitle 等正确的数据库字段了
+  // 所以不需要再做别名映射赋值，避免覆盖掉真正的值
   
   const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
   
@@ -842,9 +876,6 @@ const handleSubmit = () => {
       if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
 
       const payload = JSON.parse(JSON.stringify(formData))
-      delete payload.itineraries
-      delete payload.subsidies
-      delete payload.apportionments
       
       const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
       

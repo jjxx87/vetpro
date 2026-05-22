@@ -68,11 +68,16 @@
         <el-table-column label="操作" width="95" fixed="left">
           <template #default="{ row }">
             <div class="actions">
-              <el-button type="primary" link @click="handleEdit(row)">
-                <el-icon :size="16"><Document /></el-icon>
-              </el-button>
-              <el-button type="primary" link @click="handleEdit(row)">
+              <el-button 
+                :type="row.status === 1 || row.status === 2 ? 'info' : 'primary'" 
+                link 
+                @click="handleEdit(row)" 
+                :disabled="row.status === 1 || row.status === 2"
+              >
                 <el-icon :size="16"><EditPen /></el-icon>
+              </el-button>
+              <el-button type="primary" link @click="handleDelete(row)">
+                <el-icon :size="16"><DocumentDelete /></el-icon>
               </el-button>
               <el-dropdown trigger="hover" placement="bottom-start">
                 <el-button type="primary" link class="more-trigger">
@@ -80,8 +85,8 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item @click="handleDelete(row)">删除</el-dropdown-item>
-                    <el-dropdown-item @click="handleVoid(row)" :disabled="row.status === 2">手工推送</el-dropdown-item>
+                    <!-- <el-dropdown-item @click="handleDelete(row)">删除</el-dropdown-item> -->
+                    <el-dropdown-item @click="handleVoid(row)" :disabled="row.status === 2">作废</el-dropdown-item>
                     <el-dropdown-item @click="handlePrint(row)">复制</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -91,7 +96,7 @@
         </el-table-column>
         <el-table-column prop="reimNo" label="报销单号" min-width="160">
           <template #default="{ row }">
-            <div style="color: #409EFF;">{{ row.id?.slice(0, 18) }}</div>
+            <el-link style="color: #409EFF;" @click="handleEdit(row)">{{ row.id?.slice(0, 18) }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="单据状态" min-width="80">
@@ -160,7 +165,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDictStore } from '../stores/dict'
-import { Document, EditPen, MoreFilled, Operation } from '@element-plus/icons-vue'
+import { DocumentDelete, EditPen, MoreFilled, Operation } from '@element-plus/icons-vue'
 import { getReimbursementList, deleteReimbursement, updateReimbursement } from '../apis/reimbursement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 

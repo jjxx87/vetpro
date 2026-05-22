@@ -1,6 +1,12 @@
-com\vetech\serve\mapper\ReimbursementMapper.class
-com\vetech\serve\service\impl\ReimbursementServiceImpl.class
+com\vetech\serve\entity\ReimbursementSubsidy.class
+com\vetech\serve\mapper\ReimbursementSubsidyMapper.class
 com\vetech\serve\ServeApplication.class
 com\vetech\serve\entity\Reimbursement.class
+com\vetech\serve\entity\ReimbursementApportionment.class
+com\vetech\serve\mapper\ReimbursementMapper.class
+com\vetech\serve\entity\ReimbursementItinerary.class
+com\vetech\serve\service\impl\ReimbursementServiceImpl.class
+com\vetech\serve\mapper\ReimbursementItineraryMapper.class
+com\vetech\serve\mapper\ReimbursementApportionmentMapper.class
 com\vetech\serve\service\IReimbursementService.class
 com\vetech\serve\controller\ReimbursementController.class
