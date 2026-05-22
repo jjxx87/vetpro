@@ -204,7 +204,8 @@
     <!-- Footer Buttons -->
     <div class="footer-fixed">
       <el-button @click="handleClose">关闭</el-button>
-      <el-button type="primary" @click="handleSubmit">提交</el-button>
+      <el-button @click="handleSaveDraft" :disabled="formData.status === 1 || formData.status === 2">保存草稿</el-button>
+      <el-button type="primary" @click="handleSubmit" :disabled="formData.status === 1 || formData.status === 2">提交</el-button>
     </div>
 
     <!-- 补录行程弹窗 -->
@@ -346,28 +347,27 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDictStore } from '../stores/dict'
-import { useReimbursementStore } from '../stores/reimbursement'
+import { getReimbursementById, addReimbursement, updateReimbursement } from '../apis/reimbursement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const route = useRoute()
 const dictStore = useDictStore()
-const reimStore = useReimbursementStore()
 
 const activeNames = ref(['1', '2', '3', '4', '5', '6'])
 const currentDate = new Date().toISOString().split('T')[0]
+import dayjs from 'dayjs'
 
 const formData = reactive({
   id: '',
-  reimNo: `RCBX${Date.now()}`,
-  title: '',
-  employeeId: '',
-  departmentId: '',
-  companyId: '',
+  reimbursementTitle: '',
+  reimburserId: '',
+  reimDepartmentId: '',
+  reimCompanyId: '',
   businessTypeId: '',
-  reason: '',
+  businessTripReason: '',
   status: 0,
-  createTime: '',
+  creationTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
   itineraries: [],
   subsidies: [],
   apportionments: [
@@ -377,21 +377,39 @@ const formData = reactive({
 })
 
 const rules = {
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-  employeeId: [{ required: true, message: '请选择报销人', trigger: 'change' }],
-  departmentId: [{ required: true, message: '请选择部门', trigger: 'change' }],
-  companyId: [{ required: true, message: '请选择公司', trigger: 'change' }],
+  reimbursementTitle: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  reimburserId: [{ required: true, message: '请选择报销人', trigger: 'change' }],
+  reimDepartmentId: [{ required: true, message: '请选择部门', trigger: 'change' }],
+  reimCompanyId: [{ required: true, message: '请选择公司', trigger: 'change' }],
   businessTypeId: [{ required: true, message: '请选择业务类型', trigger: 'change' }],
-  reason: [{ required: true, message: '请输入事由', trigger: 'blur' }]
+  businessTripReason: [{ required: true, message: '请输入事由', trigger: 'blur' }]
 }
 const formRef = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   const id = route.params.id
+  console.log(id);
+  
   if (id) {
-    const exist = reimStore.list.find(item => item.id === id)
-    if (exist) {
-      Object.assign(formData, JSON.parse(JSON.stringify(exist)))
+    try {
+      const res = await getReimbursementById(id)
+      if (res) {
+        // 由于前后端字段命名有的可能存在差异，先处理下回显映射
+        res.title = res.reimbursementTitle
+        res.employeeId = res.reimburserId
+        res.departmentId = res.reimDepartmentId
+        res.companyId = res.reimCompanyId
+        res.reason = res.businessTripReason
+        res.createTime = res.creationTime
+
+        Object.assign(formData, res)
+        // Ensure properties exists if backend only has partial fields
+        if(!formData.itineraries) formData.itineraries = []
+        if(!formData.subsidies) formData.subsidies = []
+        if(!formData.apportionments || formData.apportionments.length === 0) formData.apportionments = [{ companyId: formData.reimCompanyId, projectId: '', percent: 100, amount: Number(formData.subsidyTotal || 0) }]
+      }
+    } catch(err) {
+      console.error(err)
     }
   }
 })
@@ -751,6 +769,38 @@ const handleClose = () => {
   })
 }
 
+const handleSaveDraft = () => {
+  formData.status = 0
+  formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
+  formData.mealAllowance = String(totalMeal.value.toFixed(2))
+  formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
+  formData.phoneAllowance = String(totalComm.value.toFixed(2))
+  
+  const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
+  if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
+  
+  const dept = dictStore.departments.find(d => d.reimDepartmentId === formData.reimDepartmentId)
+  if(dept) { formData.reimDepartmentName = dept.reimDepartmentName; formData.reimDepartmentNo = dept.reimDepartmentNo; }
+  
+  const comp = dictStore.companies.find(c => c.reimCompanyId === formData.reimCompanyId)
+  if(comp) { formData.reimCompanyName = comp.reimCompanyName; formData.reimCompanyNo = comp.reimCompanyNo; }
+  
+  const type = dictStore.businessTypes.find(t => t.businessTypeId === formData.businessTypeId)
+  if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
+
+  const payload = JSON.parse(JSON.stringify(formData))
+  delete payload.itineraries
+  delete payload.subsidies
+  delete payload.apportionments
+  
+  const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
+  
+  request.then(() => {
+    ElMessage.success('保存草稿成功')
+    router.push('/')
+  }).catch(err => console.error(err))
+}
+
 const handleSubmit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
@@ -758,7 +808,6 @@ const handleSubmit = () => {
         return ElMessage.warning('请至少添加一条补录行程')
       }
       
-      // Validation for apportionments company required
       const appValid = formData.apportionments.every(a => a.companyId)
       if (!appValid) {
         return ElMessage.warning('费用归属公司为必填项')
@@ -774,21 +823,39 @@ const handleSubmit = () => {
         return ElMessage.warning('分摊金额合计必须等于补助总金额')
       }
 
-      formData.status = 1 // complete
-      formData.totalSubsidy = totalSubsidy.value
+      formData.status = 1
+      formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
+      formData.mealAllowance = String(totalMeal.value.toFixed(2))
+      formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
+      formData.phoneAllowance = String(totalComm.value.toFixed(2))
       
-      if (formData.id) {
-        reimStore.updateReimbursement(JSON.parse(JSON.stringify(formData)))
-      } else {
-        reimStore.addReimbursement(JSON.parse(JSON.stringify(formData)))
-      }
+      const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
+      if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
       
-      ElMessageBox.alert('提交成功', '提示', {
-        confirmButtonText: '确定',
-        callback: () => {
-          router.push('/')
-        }
-      })
+      const dept = dictStore.departments.find(d => d.reimDepartmentId === formData.reimDepartmentId)
+      if(dept) { formData.reimDepartmentName = dept.reimDepartmentName; formData.reimDepartmentNo = dept.reimDepartmentNo; }
+      
+      const comp = dictStore.companies.find(c => c.reimCompanyId === formData.reimCompanyId)
+      if(comp) { formData.reimCompanyName = comp.reimCompanyName; formData.reimCompanyNo = comp.reimCompanyNo; }
+      
+      const type = dictStore.businessTypes.find(t => t.businessTypeId === formData.businessTypeId)
+      if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
+
+      const payload = JSON.parse(JSON.stringify(formData))
+      delete payload.itineraries
+      delete payload.subsidies
+      delete payload.apportionments
+      
+      const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
+      
+      request.then(() => {
+        ElMessageBox.alert('提交成功', '提示', {
+          confirmButtonText: '确定',
+          callback: () => {
+            router.push('/')
+          }
+        })
+      }).catch(err => console.error(err))
     }
   })
 }

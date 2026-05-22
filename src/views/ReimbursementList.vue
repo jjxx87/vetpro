@@ -1,123 +1,145 @@
 <template>
   <div class="list-container">
-    <el-card class="search-card" shadow="never">
+    <el-card class="search-card" shadow="never" :body-style="{ padding: '20px 20px 0 20px' }">
       <el-form :model="searchForm" label-width="100px" class="search-form">
         <el-row :gutter="20">
           <el-col :span="6">
             <el-form-item label="报销单号">
-              <el-input v-model="searchForm.reimNo" placeholder="请输入报销单号" clearable />
+              <el-input v-model="searchForm.reimNo" placeholder="请输入" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="标题">
-              <el-input v-model="searchForm.title" placeholder="请输入标题" clearable />
+              <el-input v-model="searchForm.title" placeholder="请输入" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="事由">
-              <el-input v-model="searchForm.reason" placeholder="请输入事由" clearable />
+              <el-input v-model="searchForm.reason" placeholder="请输入" clearable />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="费用归属公司">
-              <el-select v-model="searchForm.companyId" placeholder="请选择" clearable>
+              <el-select v-model="searchForm.companyId" placeholder="请选择" clearable style="width: 100%">
                 <el-option v-for="item in dictStore.companies" :key="item.reimCompanyId" :label="item.reimCompanyName" :value="item.reimCompanyId" />
               </el-select>
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="6">
             <el-form-item label="报销部门">
-              <el-select v-model="searchForm.departmentId" placeholder="请选择" clearable>
+              <el-select v-model="searchForm.departmentId" placeholder="请选择" clearable style="width: 100%">
                 <el-option v-for="item in dictStore.departments" :key="item.reimDepartmentId" :label="item.reimDepartmentName" :value="item.reimDepartmentId" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="报销人">
-              <el-select v-model="searchForm.employeeId" placeholder="请选择" clearable>
+              <el-select v-model="searchForm.employeeId" placeholder="请选择" clearable style="width: 100%">
                 <el-option v-for="item in dictStore.employees" :key="item.reimburserId" :label="item.reimburserName" :value="item.reimburserId" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="业务类型">
-              <el-tree-select v-model="searchForm.businessTypeId" :data="dictStore.businessTypeTree" placeholder="请选择" check-strictly clearable />
+              <el-tree-select v-model="searchForm.businessTypeId" :data="dictStore.businessTypeTree" placeholder="请选择" check-strictly clearable style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="6" class="text-right">
+          <el-col :span="6" class="text-right" style="padding-bottom: 18px;">
+            <el-button plain type="primary" @click="handleAdd">新增</el-button>
+            <el-button plain type="primary" @click="handleClear">清除</el-button>
             <el-button type="primary" @click="handleSearch">搜索</el-button>
-            <el-button @click="handleClear">清除</el-button>
-            <el-button type="success" @click="handleAdd">新增</el-button>
           </el-col>
         </el-row>
       </el-form>
     </el-card>
 
     <el-card class="table-card" shadow="never">
-      <el-table :data="tableData" style="width: 100%" border>
-        <el-table-column label="操作" width="120" fixed="left">
+      <el-table :data="tableData" style="width: 100%" v-loading="loading" header-row-class-name="table-header">
+        <el-table-column width="40" align="center" fixed="left">
+          <template #header>
+            <el-icon color="#409EFF"><Operation /></el-icon>
+          </template>
+          <template #default="{ $index }">
+            {{ (currentPage - 1) * pageSize + $index + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="95" fixed="left">
           <template #default="{ row }">
             <div class="actions">
-              <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-              <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-              <el-dropdown trigger="hover" v-if="true">
-                <el-button type="primary" link>
-                  更多<el-icon class="el-icon--right"><arrow-down /></el-icon>
+              <el-button type="primary" link @click="handleEdit(row)">
+                <el-icon :size="16"><Document /></el-icon>
+              </el-button>
+              <el-button type="primary" link @click="handleEdit(row)">
+                <el-icon :size="16"><EditPen /></el-icon>
+              </el-button>
+              <el-dropdown trigger="hover" placement="bottom-start">
+                <el-button type="primary" link class="more-trigger">
+                  <el-icon :size="16"><MoreFilled /></el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item>作废</el-dropdown-item>
-                    <el-dropdown-item>打印</el-dropdown-item>
+                    <el-dropdown-item @click="handleDelete(row)">删除</el-dropdown-item>
+                    <el-dropdown-item @click="handleVoid(row)" :disabled="row.status === 2">手工推送</el-dropdown-item>
+                    <el-dropdown-item @click="handlePrint(row)">复制</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="reimNo" label="报销单号" width="180">
+        <el-table-column prop="reimNo" label="报销单号" min-width="160">
           <template #default="{ row }">
-            <el-link type="primary" @click="handleEdit(row)">{{ row.reimNo }}</el-link>
+            <div style="color: #409EFF;">{{ row.id?.slice(0, 18) }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="单据状态" width="100">
+        <el-table-column prop="status" label="单据状态" min-width="80">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : row.status === 2 ? 'info' : 'warning'">
+            <span :class="['status-text', row.status === 2 ? 'status-invalid' : 'status-normal']">
               {{ row.status === 1 ? '已完成' : row.status === 2 ? '已作废' : '草稿' }}
-            </el-tag>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="报销人" width="150">
+        <el-table-column label="单据类型" min-width="100">
+          <template #default>日常报销单</template>
+        </el-table-column>
+        <el-table-column label="报销人" min-width="130" show-overflow-tooltip>
           <template #default="{ row }">
-            {{ getEmployeeDisplay(row.employeeId) }}
+            {{ getEmployeeDisplay(row.reimburserId) }}
           </template>
         </el-table-column>
-        <el-table-column label="报销部门" width="180">
+        <el-table-column label="报销部门" min-width="140" show-overflow-tooltip>
           <template #default="{ row }">
-            {{ getDepartmentDisplay(row.departmentId) }}
+            {{ getDepartmentDisplay(row.reimDepartmentId) }}
           </template>
         </el-table-column>
-        <el-table-column label="费用归属公司" width="200">
+        <el-table-column label="费用归属公司" min-width="150" show-overflow-tooltip>
           <template #default="{ row }">
-            {{ getCompanyDisplay(row.companyId) }}
+            {{ getCompanyDisplay(row.reimCompanyId) }}
           </template>
         </el-table-column>
-        <el-table-column label="业务类型" width="150">
+        <el-table-column label="业务类型" min-width="100" show-overflow-tooltip>
           <template #default="{ row }">
             {{ getBusinessTypeDisplay(row.businessTypeId) }}
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="报销标题" width="200" show-overflow-tooltip>
+        <el-table-column prop="reimbursementTitle" label="报销标题" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">
-            <el-link type="primary" @click="handleEdit(row)">{{ row.title }}</el-link>
+            <div style="color: #409EFF;">{{ row.reimbursementTitle }}</div>
           </template>
         </el-table-column>
-        <el-table-column prop="reason" label="报销事由" width="200" show-overflow-tooltip />
-        <el-table-column prop="totalSubsidy" label="补助金额" width="120" align="right">
+        <el-table-column prop="businessTripReason" label="报销事由" min-width="100" show-overflow-tooltip />
+        <el-table-column prop="subsidyTotal" label="补助金额" min-width="90" align="right">
           <template #default="{ row }">
-            {{ row.totalSubsidy?.toFixed(2) || '0.00' }}
+            {{ Number(row.subsidyTotal || 0).toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="150" />
+        <el-table-column prop="creationTime" label="创建时间" min-width="100">
+          <template #default="{ row }">
+            {{ row.creationTime?.split(' ')[0] }}
+          </template>
+        </el-table-column>
       </el-table>
       <div class="pagination-container">
         <el-pagination
@@ -135,15 +157,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDictStore } from '../stores/dict'
-import { useReimbursementStore } from '../stores/reimbursement'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { Document, EditPen, MoreFilled, Operation } from '@element-plus/icons-vue'
+import { getReimbursementList, deleteReimbursement, updateReimbursement } from '../apis/reimbursement'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const dictStore = useDictStore()
-const reimStore = useReimbursementStore()
 
 const searchForm = ref({
   reimNo: '',
@@ -157,16 +179,35 @@ const searchForm = ref({
 
 const currentPage = ref(1)
 const pageSize = ref(10)
+const loading = ref(false)
+
+const allData = ref([])
+
+const fetchList = async () => {
+  loading.value = true
+  try {
+    const res = await getReimbursementList()
+    allData.value = res || []
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchList()
+})
 
 const filteredList = computed(() => {
-  return reimStore.list.filter(item => {
+  return allData.value.filter(item => {
     let match = true
-    if (searchForm.value.reimNo && !item.reimNo?.includes(searchForm.value.reimNo)) match = false
-    if (searchForm.value.title && !item.title?.includes(searchForm.value.title)) match = false
-    if (searchForm.value.reason && !item.reason?.includes(searchForm.value.reason)) match = false
-    if (searchForm.value.companyId && item.companyId !== searchForm.value.companyId) match = false
-    if (searchForm.value.departmentId && item.departmentId !== searchForm.value.departmentId) match = false
-    if (searchForm.value.employeeId && item.employeeId !== searchForm.value.employeeId) match = false
+    if (searchForm.value.reimNo && !item.id?.includes(searchForm.value.reimNo)) match = false
+    if (searchForm.value.title && !item.reimbursementTitle?.includes(searchForm.value.title)) match = false
+    if (searchForm.value.reason && !item.businessTripReason?.includes(searchForm.value.reason)) match = false
+    if (searchForm.value.companyId && item.reimCompanyId !== searchForm.value.companyId) match = false
+    if (searchForm.value.departmentId && item.reimDepartmentId !== searchForm.value.departmentId) match = false
+    if (searchForm.value.employeeId && item.reimburserId !== searchForm.value.employeeId) match = false
     if (searchForm.value.businessTypeId && item.businessTypeId !== searchForm.value.businessTypeId) match = false
     return match
   })
@@ -206,11 +247,31 @@ const handleEdit = (row) => {
 }
 
 const handleDelete = (row) => {
-  // Mock delete
-  const index = reimStore.list.findIndex(item => item.id === row.id)
-  if (index !== -1) {
-    reimStore.list.splice(index, 1)
-  }
+  ElMessageBox.confirm('确认删除该报销单吗?', '提示', { type: 'warning' }).then(async () => {
+    try {
+      await deleteReimbursement(row.id)
+      ElMessage.success('删除成功')
+      fetchList()
+    } catch (error) {
+      console.error(error)
+    }
+  }).catch(() => {})
+}
+
+const handleVoid = (row) => {
+  ElMessageBox.confirm('确认作废该报销单吗?', '提示', { type: 'warning' }).then(async () => {
+    try {
+      await updateReimbursement({ id: row.id, status: 2 })
+      ElMessage.success('作废成功')
+      fetchList()
+    } catch (error) {
+      console.error(error)
+    }
+  }).catch(() => {})
+}
+
+const handlePrint = (row) => {
+  ElMessage.warning('打印功能待接入')
 }
 
 const handleSizeChange = (val) => {
@@ -224,12 +285,12 @@ const handleCurrentChange = (val) => {
 // Display helpers
 const getEmployeeDisplay = (id) => {
   const emp = dictStore.employees.find(e => e.reimburserId === id)
-  return emp ? `${emp.reimburserName}(${emp.reimburserNo})` : ''
+  return emp ? `${emp.reimburserName}[${emp.reimburserNo}]` : ''
 }
 
 const getDepartmentDisplay = (id) => {
   const dept = dictStore.departments.find(d => d.reimDepartmentId === id)
-  return dept ? `${dept.reimDepartmentName}(${dept.reimDepartmentNo})` : ''
+  return dept ? `[${dept.reimDepartmentNo}]${dept.reimDepartmentName}` : ''
 }
 
 const getCompanyDisplay = (id) => {
@@ -252,9 +313,13 @@ const getBusinessTypeDisplay = (id) => {
 }
 .search-card {
   margin-bottom: 20px;
+  border-radius: 4px;
 }
 .text-right {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
 }
 .pagination-container {
   margin-top: 20px;
@@ -265,5 +330,35 @@ const getBusinessTypeDisplay = (id) => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.more-trigger {
+  padding: 0;
+}
+
+.status-text {
+  font-size: 13px;
+}
+.status-normal {
+  color: #409EFF;
+}
+.status-invalid {
+  color: #909399;
+}
+
+:deep(.table-header th) {
+  background-color: #fafafa !important;
+  color: #606266;
+  font-weight: 500;
+  border-bottom: 1px solid #ebeef5;
+}
+:deep(.el-table) {
+  font-size: 13px;
+}
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+.el-button+.el-button {
+    margin-left: 0px;
 }
 </style>
