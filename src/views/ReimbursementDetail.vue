@@ -11,7 +11,7 @@
         <!-- 基础信息 -->
         <el-collapse-item name="1">
           <template #title>
-            <div class="collapse-title-custom">基础信息</div>
+            <div class="collapse-title-custom title-base">基础信息</div>
           </template>
           <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="base-form">
             <el-row :gutter="20">
@@ -58,7 +58,7 @@
         <!-- 补录行程 -->
         <el-collapse-item name="2">
           <template #title>
-            <div class="collapse-title-custom">
+            <div class="collapse-title-custom title-base">
               <span>补录行程</span>
               <el-button type="primary" link @click.stop="openItineraryDialog()">⊕ 补录行程</el-button>
             </div>
@@ -208,44 +208,43 @@
     <!-- Footer Buttons -->
     <div class="footer-fixed">
       <el-button @click="handleClose">关闭</el-button>
-      <el-button @click="handleSaveDraft" :disabled="formData.status === 1 || formData.status === 2">保存草稿</el-button>
       <el-button type="primary" @click="handleSubmit" :disabled="formData.status === 1 || formData.status === 2">提交</el-button>
     </div>
 
     <!-- 补录行程弹窗 -->
     <el-dialog v-model="itineraryVisible" title="补录行程" width="800px" destroy-on-close>
-      <el-alert title="仅可补录未从申请单带入或未产生费用的行程信息。跨天跨城行程填写说明： 出发城市-到达城市：武汉-北京; 出发日期-到达日期：1号-5号; 1号~5号补助按北京匹配;" type="info" :closable="false" style="margin-bottom: 15px;" />
-      <el-form :model="itineraryForm" :rules="itineraryRules" ref="itineraryFormRef" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
+      <el-alert type="warning" show-icon :closable="false" class="custom-alert" style="margin-bottom: 15px; align-items: flex-start;">
+        <template #title>
+          <div style="font-size: 14px; color: #606266; line-height: 1.5; margin-top: -2px;">仅可补录未从申请单带入或未产生费用的行程信息</div>
+        </template>
+        <div style="font-size: 14px; color: #606266; line-height: 1.5;">跨天跨城行程填写说明： 出发城市-到达城市：武汉-北京; 出发日期-到达日期：1号-5号; 1号~5号补助按北京匹配;</div>
+      </el-alert>
+      <el-form :model="itineraryForm" :rules="itineraryRules" ref="itineraryFormRef" label-width="120px" class="itinerary-form-custom">
+        <el-row>
+          <el-col :span="16">
             <el-form-item label="出行人" prop="employeeId">
-              <el-select v-model="itineraryForm.employeeId" placeholder="请选择" style="width: 100%">
+              <el-select v-model="itineraryForm.employeeId" placeholder="请选择" style="width: 100%" clearable>
                 <el-option v-for="item in dictStore.employees" :key="item.reimburserId" :label="item.reimburserName" :value="item.reimburserId" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="16">
             <el-form-item label="出发城市" prop="startCity">
-              <el-select v-model="itineraryForm.startCity" placeholder="请选择" style="width: 100%">
+              <el-select v-model="itineraryForm.startCity" placeholder="请选择" style="width: 100%" clearable>
                 <el-option v-for="item in dictStore.cities" :key="item.cityNo" :label="item.cityName" :value="item.cityNo" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="16">
             <el-form-item label="到达城市" prop="endCity">
-              <el-select v-model="itineraryForm.endCity" placeholder="请选择" style="width: 100%">
+              <el-select v-model="itineraryForm.endCity" placeholder="请选择" style="width: 100%" clearable>
                 <el-option v-for="item in dictStore.cities" :key="item.cityNo" :label="item.cityName" :value="item.cityNo" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="出发日期" prop="startDate">
-              <el-date-picker v-model="itineraryForm.startDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="到达日期" prop="endDate">
-              <el-date-picker v-model="itineraryForm.endDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%" />
+          <el-col :span="16">
+            <el-form-item label="出发到达日期" prop="dateRange">
+              <el-date-picker v-model="itineraryForm.dateRange" type="datetimerange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -258,7 +257,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="itineraryVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveItinerary">确认</el-button>
+          <el-button type="primary" @click="saveItinerary">保存</el-button>
         </span>
       </template>
     </el-dialog>
@@ -353,6 +352,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDictStore } from '../stores/dict'
 import { getReimbursementById, addReimbursement, updateReimbursement } from '../apis/reimbursement'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -471,6 +471,7 @@ const itineraryForm = reactive({
   employeeId: '',
   startCity: '',
   endCity: '',
+  dateRange: [],
   startDate: '',
   endDate: '',
   reason: ''
@@ -479,18 +480,21 @@ const itineraryRules = {
   employeeId: [{ required: true, message: '请选择出行人', trigger: 'change' }],
   startCity: [{ required: true, message: '请选择出发城市', trigger: 'change' }],
   endCity: [{ required: true, message: '请选择到达城市', trigger: 'change' }],
-  startDate: [{ required: true, message: '请选择出发日期', trigger: 'change' }],
-  endDate: [{ required: true, message: '请选择到达日期', trigger: 'change' }],
-  reason: [{ required: true, message: '请输入说明', trigger: 'blur' }]
+  dateRange: [{ required: true, message: '请选择出发到达日期', trigger: 'change' }],
+  reason: [{ required: true, message: '请输入行程说明', trigger: 'blur' }]
 }
 
 const openItineraryDialog = (row, index = -1) => {
   editItineraryIndex.value = index
   if (row) {
     Object.assign(itineraryForm, JSON.parse(JSON.stringify(row)))
+    itineraryForm.dateRange = [
+      row.startDate.includes(':') ? row.startDate : row.startDate + ' 00:00:00',
+      row.endDate.includes(':') ? row.endDate : row.endDate + ' 00:00:00'
+    ]
   } else {
     Object.assign(itineraryForm, {
-      employeeId: '', startCity: '', endCity: '', startDate: '', endDate: '', reason: ''
+      employeeId: '', startCity: '', endCity: '', startDate: '', endDate: '', reason: '', dateRange: []
     })
   }
   itineraryVisible.value = true
@@ -511,6 +515,9 @@ const deleteItinerary = (index) => {
 const saveItinerary = () => {
   itineraryFormRef.value.validate((valid) => {
     if (valid) {
+      itineraryForm.startDate = itineraryForm.dateRange[0].split(' ')[0]
+      itineraryForm.endDate = itineraryForm.dateRange[1].split(' ')[0]
+
       if (itineraryForm.endDate < itineraryForm.startDate) {
         return ElMessage.error('到达日期不能早于出发日期')
       }
@@ -804,8 +811,8 @@ const handleClose = () => {
   })
 }
 
-const handleSaveDraft = () => {
-  formData.status = 0
+const doSubmit = (status) => {
+  formData.status = status
   formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
   formData.mealAllowance = String(totalMeal.value.toFixed(2))
   formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
@@ -824,13 +831,11 @@ const handleSaveDraft = () => {
   if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
 
   const payload = JSON.parse(JSON.stringify(formData))
-  // 【移除】因为前端模板 v-model 绑定的已经是 formData.reimbursementTitle 等正确的数据库字段了
-  // 所以不需要再做别名映射赋值，避免覆盖掉真正的值
   
   const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
   
   request.then(() => {
-    ElMessage.success('保存草稿成功')
+    ElMessage.success(status === 0 ? '保存草稿成功' : '提交成功')
     router.push('/')
   }).catch(err => console.error(err))
 }
@@ -839,54 +844,59 @@ const handleSubmit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       if (formData.itineraries.length === 0) {
-        return ElMessage.warning('请至少添加一条补录行程')
+        ElMessageBox.confirm('您还未添加补录行程，是否要先保存为草稿？', '提示', {
+          confirmButtonText: '保存草稿',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          doSubmit(0)
+        }).catch(() => {})
+        return
       }
       
       const appValid = formData.apportionments.every(a => a.companyId)
       if (!appValid) {
-        return ElMessage.warning('费用归属公司为必填项')
+        ElMessageBox.confirm('费用归属公司有未填项，是否要先保存为草稿？', '提示', {
+          confirmButtonText: '保存草稿',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          doSubmit(0)
+        }).catch(() => {})
+        return
       }
       
+      // Check apportionments
       let pSum = formData.apportionments.reduce((sum, item) => sum + item.percent, 0)
       if (Math.abs(pSum - 100) > 0.01) {
-        return ElMessage.warning('分摊比例合计必须为100%')
+        ElMessageBox.confirm('分摊比例合计不为100%，是否要先保存为草稿？', '提示', {
+          confirmButtonText: '保存草稿',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => doSubmit(0)).catch(() => {})
+        return
       }
-
+      
       let aSum = formData.apportionments.reduce((sum, item) => sum + item.amount, 0)
       if (Math.abs(aSum - totalSubsidy.value) > 0.01) {
-        return ElMessage.warning('分摊金额合计必须等于补助总金额')
+        ElMessageBox.confirm('分摊金额合计不等于补助总额，是否要先保存为草稿？', '提示', {
+          confirmButtonText: '保存草稿',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => doSubmit(0)).catch(() => {})
+        return
       }
 
-      formData.status = 1
-      formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
-      formData.mealAllowance = String(totalMeal.value.toFixed(2))
-      formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
-      formData.phoneAllowance = String(totalComm.value.toFixed(2))
-      
-      const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
-      if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
-      
-      const dept = dictStore.departments.find(d => d.reimDepartmentId === formData.reimDepartmentId)
-      if(dept) { formData.reimDepartmentName = dept.reimDepartmentName; formData.reimDepartmentNo = dept.reimDepartmentNo; }
-      
-      const comp = dictStore.companies.find(c => c.reimCompanyId === formData.reimCompanyId)
-      if(comp) { formData.reimCompanyName = comp.reimCompanyName; formData.reimCompanyNo = comp.reimCompanyNo; }
-      
-      const type = dictStore.businessTypes.find(t => t.businessTypeId === formData.businessTypeId)
-      if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
-
-      const payload = JSON.parse(JSON.stringify(formData))
-      
-      const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
-      
-      request.then(() => {
-        ElMessageBox.alert('提交成功', '提示', {
-          confirmButtonText: '确定',
-          callback: () => {
-            router.push('/')
-          }
-        })
-      }).catch(err => console.error(err))
+      // All Valid -> Status 1
+      doSubmit(1)
+    } else {
+      ElMessageBox.confirm('表单有必填项未填完，是否要先保存为草稿？', '提示', {
+        confirmButtonText: '保存草稿',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        doSubmit(0)
+      }).catch(() => {})
     }
   })
 }
@@ -906,17 +916,17 @@ const handleSubmit = () => {
   background: #fff;
   padding: 15px 30px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
 }
 .header-title {
   font-size: 20px;
   font-weight: bold;
-  flex: 1;
-  text-align: center;
 }
 .header-date {
+  position: absolute;
+  right: 30px;
   font-size: 14px;
   color: #666;
 }
@@ -933,7 +943,7 @@ const handleSubmit = () => {
   width: 100%;
   padding-right: 20px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: normal;
 }
 .subsidy-total-hint {
   font-size: 14px;
@@ -1001,12 +1011,57 @@ const handleSubmit = () => {
 }
 :deep(.el-collapse-item__header) {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: normal;
+  background-color: #f5f7fa;
+  padding: 0 15px 0 20px;
+  height: 36px !important;
+  line-height: 36px !important;
+  min-height: 36px !important;
+  position: relative;
+  border-bottom: none;
+}
+:deep(.el-collapse-item__header)::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background-color: #409eff;
+}
+:deep(.el-collapse-item) {
+  margin-bottom: 15px;
+}
+:deep(.el-collapse) {
+  border-top: none;
+  border-bottom: none;
+}
+:deep(.el-collapse-item__wrap) {
+  border-bottom: none;
+}
+:deep(.el-collapse-item__content) {
+  padding-top: 20px;
 }
 :deep(.el-form-item__label) {
   font-size: 14px;
 }
 :deep(.el-table) {
   font-size: 14px;
+}
+.title-base {
+  font-size: 16px;
+  height: 36px;
+}
+.itinerary-form-custom :deep(.el-form-item__label::after) {
+  content: '*';
+  color: #f56c6c;
+  margin-left: 4px;
+}
+.itinerary-form-custom :deep(.el-form-item.is-required .el-form-item__label::before) {
+  display: none;
+}
+.custom-alert :deep(.el-alert__icon) {
+  /* margin-top: 2px; */
 }
 </style>
