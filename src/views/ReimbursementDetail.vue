@@ -63,7 +63,7 @@
               <el-button type="primary" link @click.stop="openItineraryDialog()">⊕ 补录行程</el-button>
             </div>
           </template>
-          <el-table :data="formData.itineraries" style="width: 100%">
+          <el-table :data="formData.itineraries" style="width: 100%" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
             <el-table-column type="index" label="序号" width="60" />
             <el-table-column label="出行人员">
               <template #default="{ row }">{{ getEmployeeDisplay(row.employeeId) }}</template>
@@ -77,9 +77,10 @@
             <el-table-column prop="reason" label="行程说明" show-overflow-tooltip />
             <el-table-column label="操作" width="150">
               <template #default="{ row, $index }">
-                <el-button type="primary" link @click="openItineraryDialog(row, $index)">编辑</el-button>
-                <el-button type="primary" link @click="copyItinerary(row)">复制</el-button>
-                <el-button type="danger" link @click="deleteItinerary($index)">删除</el-button>
+                <el-button type="primary" link @click="deleteItinerary($index)"><el-icon><Delete /></el-icon></el-button>
+                <el-button type="primary" link @click="openItineraryDialog(row, $index)"><el-icon><EditPen /></el-icon></el-button>
+                <el-button type="primary" link @click="copyItinerary(row)"><el-icon><CopyDocument /></el-icon></el-button>
+                
               </template>
             </el-table-column>
           </el-table>
@@ -88,13 +89,17 @@
         <!-- 补助信息 -->
         <el-collapse-item name="3">
           <template #title>
-            <div class="collapse-title-custom">
+            <div class="">
               <span>补助信息</span>
               <span class="subsidy-total-hint">{{ totalSubsidy.toFixed(2) }} (补助天数: {{ totalDays }}天)</span>
             </div>
           </template>
-          <el-alert title="1、请根据实际出差日期选择补助 2、出差期间当日有用餐安排的请自行核减当日餐补 3、出差期间当日有用车的，请自行核减当日交补" type="warning" :closable="false" style="margin-bottom: 10px;" />
-          <el-table :data="formData.subsidies" style="width: 100%">
+          <el-alert type="warning" show-icon :closable="false" style="margin-bottom: 10px;" class="black-text-alert">
+            <template #title>
+              <span>1、请根据实际出差日期选择补助 2、出差期间当日有用餐安排的请自行核减当日餐补 3、出差期间当日有用车的，请自行核减当日交补</span>
+            </template>
+          </el-alert>
+          <el-table :data="formData.subsidies" style="width: 100%" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
             <el-table-column type="index" label="序号" width="60" />
             <el-table-column label="出行人">
               <template #default="{ row }">{{ getEmployeeDisplay(row.employeeId) }}</template>
@@ -121,7 +126,7 @@
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ row, $index }">
-                <el-button type="primary" link @click="openSubsidyDialog(row, $index)">编辑</el-button>
+                <el-button type="primary" link @click="openSubsidyDialog(row, $index)"><el-icon><EditPen /></el-icon></el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -143,14 +148,17 @@
         <!-- 费用归属及分摊 -->
         <el-collapse-item name="5">
           <template #title>
-            <div class="collapse-title-custom">
+            <div class="">
               <span>费用归属及分摊</span>
               <span class="subsidy-total-hint">(分摊金额: {{ totalSubsidy.toFixed(2) }})</span>
             </div>
           </template>
-          <el-table :data="formData.apportionments" style="width: 100%">
+          <el-table :data="formData.apportionments" style="width: 100%" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
             <el-table-column type="index" label="序号" width="60" />
-            <el-table-column label="费用归属*">
+            <el-table-column>
+              <template #header>
+                费用归属<span style="color: #f56c6c">*</span>
+              </template>
               <template #default="{ row, $index }">
                 <el-select v-model="row.companyId" placeholder="请选择" style="width: 100%" :disabled="$index === 0 && false">
                   <el-option v-for="item in dictStore.companies" :key="item.reimCompanyId" :label="item.reimCompanyName" :value="item.reimCompanyId" />
@@ -164,22 +172,31 @@
                 </el-select>
               </template>
             </el-table-column>
-            <el-table-column label="分摊比例(%)*">
+            <el-table-column align="right">
               <template #header>
-                <span>分摊比例 <el-button type="primary" link @click="evenApportion">均摊</el-button></span>
+                <div style="display: flex; align-items: center; justify-content: flex-end;">
+                  <span>分摊比例(%)</span>
+                  <el-icon @click="evenApportion" class="refresh-icon"><Refresh /></el-icon>
+                  <span style="color: #f56c6c">*</span>
+                </div>
               </template>
               <template #default="{ row, $index }">
-                <el-input-number v-model="row.percent" :min="0" :max="100" :precision="2" :controls="false" :disabled="$index === 0" @change="handleApportionPercentChange($index)" style="width: 100%" />
+                <el-input-number v-model="row.percent" :min="0" :max="100" :precision="2" :controls="false" :disabled="$index === 0" @change="handleApportionPercentChange($index)" style="width: 100%" class="percent-input right-align-input" />
               </template>
             </el-table-column>
-            <el-table-column label="分摊金额*">
+            <el-table-column align="right">
+              <template #header>
+                <div style="text-align: right;">
+                  分摊金额<span style="color: #f56c6c">*</span>
+                </div>
+              </template>
               <template #default="{ row }">
-                <el-input-number v-model="row.amount" :disabled="true" :precision="2" :controls="false" style="width: 100%" />
+                <el-input-number v-model="row.amount" :disabled="true" :precision="2" :controls="false" style="width: 100%" class="right-align-input" />
               </template>
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ $index }">
-                <el-button type="danger" link @click="deleteApportionment($index)">删除</el-button>
+                <el-button type="primary" link @click="deleteApportionment($index)"><el-icon><Delete /></el-icon></el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -187,7 +204,8 @@
             <el-button type="primary" link @click="addApportionment">⊕ 添加一行</el-button>
           </div>
           <div class="apportion-footer">
-            <span>合计: 100.00%</span>
+            <span>合计</span>
+            <span>100.00%</span>
             <span>CNY {{ totalSubsidy.toFixed(2) }}</span>
           </div>
         </el-collapse-item>
@@ -197,7 +215,7 @@
           <template #title>
             <div class="collapse-title-custom">
               <span>备注信息</span>
-              <el-button type="danger" link @click.stop="clearRemarks">删除备注</el-button>
+              <el-button type="primary" link @click.stop="clearRemarks"><el-icon><Delete /></el-icon>删除备注</el-button>
             </div>
           </template>
           <el-input type="textarea" v-model="formData.remarks" maxlength="1000" show-word-limit placeholder="请输入备注信息" :rows="4" />
@@ -207,7 +225,7 @@
 
     <!-- Footer Buttons -->
     <div class="footer-fixed">
-      <el-button @click="handleClose">关闭</el-button>
+      <el-button @click="handleClose" class="persistent-blue-btn">关闭</el-button>
       <el-button type="primary" @click="handleSubmit" :disabled="formData.status === 1 || formData.status === 2">提交</el-button>
     </div>
 
@@ -256,7 +274,7 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="itineraryVisible = false">取消</el-button>
+          <el-button @click="itineraryVisible = false" class="persistent-blue-btn">取消</el-button>
           <el-button type="primary" @click="saveItinerary">保存</el-button>
         </span>
       </template>
@@ -266,69 +284,125 @@
     <el-dialog v-model="subsidyVisible" title="补助日历" width="1000px" destroy-on-close fullscreen>
       <div class="subsidy-calendar-container">
         <div class="calendar-left">
-          <div class="info-item">出差类型：<span style="color: #e6a23c">{{ getBusinessTypeDisplay(formData.businessTypeId) }}</span></div>
-          <div class="timeline">
-            <div>开始日期：{{ currentSubsidy.startDate }}</div>
-            <div class="days-bar">行程天数 {{ getCityName(currentSubsidy.startCity) }} - {{ getCityName(currentSubsidy.endCity) }} : {{ currentSubsidy.days }}天</div>
-            <div>结束日期：{{ currentSubsidy.endDate }}</div>
+          <div class="type-header">
+            <span class="type-label">出差类型</span>
+            <span class="type-value">{{ getBusinessTypeDisplay(formData.businessTypeId) }}</span>
           </div>
-          <div class="amount-summary">
-            <div>申请金额: CNY {{ currentSubsidyApplyAmount.toFixed(2) }}</div>
-            <div>标准总额: CNY {{ currentSubsidyStandardAmount.toFixed(2) }}</div>
-            <div>补助金额: CNY {{ currentSubsidyAmount.toFixed(2) }}</div>
+          
+          <div class="itinerary-card">
+            <div class="itinerary-row">
+              <div class="row-label">开始日期</div>
+              <div class="timeline-node node-top">
+                <div class="donut-dot"></div>
+                <div class="line line-down"></div>
+              </div>
+              <div class="row-value">{{ currentSubsidy.startDate }}</div>
+            </div>
+            
+            <div class="blue-bar">
+              <div class="row-label" style="color: #fff;">行程天数</div>
+              <div class="timeline-node"></div>
+              <div class="row-value" style="color: #fff;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span>{{ getCityName(currentSubsidy.startCity) }} - {{ getCityName(currentSubsidy.endCity) }}</span>
+                  <span>{{ currentSubsidy.days }}天</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="itinerary-row">
+              <div class="row-label">结束日期</div>
+              <div class="timeline-node node-bottom">
+                <div class="line line-up"></div>
+                <div class="donut-dot"></div>
+              </div>
+              <div class="row-value">{{ currentSubsidy.endDate }}</div>
+            </div>
+          </div>
+
+          <div class="amount-card">
+            <div class="amount-row">
+              <span class="amount-label">申请金额</span>
+              <span class="amount-value">
+                <span class="currency">CNY</span>
+                <!-- <span class="number">{{ currentSubsidyApplyAmount.toFixed(2) }}</span> -->
+                <span class="number">{{ currentSubsidyAmount.toFixed(2) }}</span>
+              </span>
+            </div>
+            <div class="amount-row">
+              <span class="amount-label">标准总额</span>
+              <span class="amount-value">
+                <span class="currency">CNY</span>
+                <span class="number">{{ currentSubsidyStandardAmount.toFixed(2) }}</span>
+              </span>
+            </div>
+            <div class="amount-row">
+              <span class="amount-label">补助金额</span>
+              <span class="amount-value">
+                <span class="currency">CNY</span>
+                <span class="number">{{ currentSubsidyAmount.toFixed(2) }}</span>
+              </span>
+            </div>
           </div>
         </div>
         <div class="calendar-right">
-          <el-table :data="currentSubsidy.calendar" style="width: 100%" border>
-            <el-table-column width="150">
-              <template #header>
-                <el-checkbox v-model="calendarSelectAll" @change="handleCalendarSelectAll" /> 全选
-              </template>
+          <div class="right-header">
+            <span class="right-title">出差补助</span>
+            <el-checkbox v-model="calendarSelectAll" @change="handleCalendarSelectAll" class="right-checkbox">全选</el-checkbox>
+          </div>
+          <el-table :data="currentSubsidy.calendar" style="width: 100%" border class="subsidy-table" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
+            <el-table-column label="出差日期" width="160" align="center">
               <template #default="{ row }">
-                <el-checkbox v-model="row.selected" @change="handleRowSelectChange(row)" /> {{ row.date }}<br/>{{ row.weekday }}
+                <div class="date-cell">
+                  <div class="date-text">
+                    <div style="color: #606266; font-size: 13px; margin-bottom: 2px;">{{ row.date }}</div>
+                    <div style="color: #909399; font-size: 13px;">{{ row.weekday }} <el-checkbox v-model="row.selected" @change="handleRowSelectChange(row)" style="margin-left: 5px; height: 14px;" /></div>
+                  </div>
+                  <el-icon class="location-icon"><Location /></el-icon>
+                </div>
               </template>
             </el-table-column>
-            <el-table-column label="补助城市" width="100">
+            <el-table-column label="补助城市" align="center">
               <template #default="{ row }">{{ getCityName(row.city) }}</template>
             </el-table-column>
-            <el-table-column>
+            <el-table-column align="center">
               <template #header>
-                餐费补助 <el-checkbox v-model="colSelect.meal" @change="handleColSelect('meal')" />
+                <div class="custom-header">餐费补助 <el-checkbox v-model="colSelect.meal" @change="handleColSelect('meal')" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
-                  <div>CNY {{ row.mealStandard.toFixed(2) }}/天</div>
-                  <div style="display:flex; align-items:center;">
+                  <div class="standard-text">CNY {{ row.mealStandard.toFixed(2) }} / 天</div>
+                  <div class="input-row">
                     <el-checkbox v-model="row.mealSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.mealAmount" :min="0" :max="row.mealStandard" :precision="2" :controls="false" :disabled="!row.mealSelected" style="width: 80px; margin-left: 5px;" />
+                    <el-input-number v-model="row.mealAmount" :min="0" :max="row.mealStandard" :precision="2" :controls="false" :disabled="!row.mealSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column>
+            <el-table-column align="center">
               <template #header>
-                交通补助 <el-checkbox v-model="colSelect.traffic" @change="handleColSelect('traffic')" />
+                <div class="custom-header">交通补助 <el-checkbox v-model="colSelect.traffic" @change="handleColSelect('traffic')" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
-                  <div>CNY {{ row.trafficStandard.toFixed(2) }}/天</div>
-                  <div style="display:flex; align-items:center;">
+                  <div class="standard-text">CNY {{ row.trafficStandard.toFixed(2) }} / 天</div>
+                  <div class="input-row">
                     <el-checkbox v-model="row.trafficSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.trafficAmount" :min="0" :max="row.trafficStandard" :precision="2" :controls="false" :disabled="!row.trafficSelected" style="width: 80px; margin-left: 5px;" />
+                    <el-input-number v-model="row.trafficAmount" :min="0" :max="row.trafficStandard" :precision="2" :controls="false" :disabled="!row.trafficSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column>
+            <el-table-column align="center">
               <template #header>
-                通讯补助 <el-checkbox v-model="colSelect.comm" @change="handleColSelect('comm')" />
+                <div class="custom-header">通讯补助 <el-checkbox v-model="colSelect.comm" @change="handleColSelect('comm')" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
-                  <div>CNY {{ row.commStandard.toFixed(2) }}/天</div>
-                  <div style="display:flex; align-items:center;">
+                  <div class="standard-text">CNY {{ row.commStandard.toFixed(2) }} / 天</div>
+                  <div class="input-row">
                     <el-checkbox v-model="row.commSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.commAmount" :min="0" :max="row.commStandard" :precision="2" :controls="false" :disabled="!row.commSelected" style="width: 80px; margin-left: 5px;" />
+                    <el-input-number v-model="row.commAmount" :min="0" :max="row.commStandard" :precision="2" :controls="false" :disabled="!row.commSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
@@ -337,8 +411,8 @@
         </div>
       </div>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="subsidyVisible = false">取消</el-button>
+        <span class="dialog-footer sub-footer">
+          <el-button @click="subsidyVisible = false" class="persistent-blue-btn">取消</el-button>
           <el-button type="primary" @click="saveSubsidy">确认</el-button>
         </span>
       </template>
@@ -352,7 +426,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useDictStore } from '../stores/dict'
 import { getReimbursementById, addReimbursement, updateReimbursement } from '../apis/reimbursement'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { WarningFilled } from '@element-plus/icons-vue'
+import { WarningFilled, Location, Refresh } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -380,13 +454,17 @@ const formData = reactive({
   remarks: ''
 })
 
+// const rules = {
+//   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+//   employeeId: [{ required: true, message: '请选择报销人', trigger: 'change' }],
+//   departmentId: [{ required: true, message: '请选择部门', trigger: 'change' }],
+//   companyId: [{ required: true, message: '请选择公司', trigger: 'change' }],
+//   businessTypeId: [{ required: true, message: '请选择业务类型', trigger: 'change' }],
+//   reason: [{ required: true, message: '请输入事由', trigger: 'blur' }]
+// }
 const rules = {
-  reimbursementTitle: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-  reimburserId: [{ required: true, message: '请选择报销人', trigger: 'change' }],
-  reimDepartmentId: [{ required: true, message: '请选择部门', trigger: 'change' }],
-  reimCompanyId: [{ required: true, message: '请选择公司', trigger: 'change' }],
-  businessTypeId: [{ required: true, message: '请选择业务类型', trigger: 'change' }],
-  businessTripReason: [{ required: true, message: '请输入事由', trigger: 'blur' }]
+  companyId: [{ required: true, message: '请选择公司', trigger: 'change' }],
+  businessTypeId: [{ required: true, message: '请选择业务类型', trigger: 'change' }]
 }
 const formRef = ref(null)
 
@@ -941,7 +1019,7 @@ const handleSubmit = () => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding-right: 20px;
+  padding-right: 15px;
   font-size: 16px;
   font-weight: normal;
 }
@@ -953,13 +1031,13 @@ const handleSubmit = () => {
 }
 .fee-total-row {
   font-size: 14px;
-  padding: 10px 0;
+  padding: 10px 50px;
 }
 .apportion-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 100px;
-  padding: 15px 50px;
+  padding: 15px 50px 15px 15px;
   background: #fff8e6;
   margin-top: 10px;
   color: #e6a23c;
@@ -979,32 +1057,199 @@ const handleSubmit = () => {
 .subsidy-calendar-container {
   display: flex;
   height: 60vh;
+  padding: 10px 0;
+  border: 1px solid #ebeef5;
 }
 .calendar-left {
-  width: 200px;
-  border-right: 1px solid #ebeef5;
+  width: 280px;
+  /* border-right: 1px solid #ebeef5; */
   padding-right: 20px;
-  margin-right: 20px;
+  /* margin-right: 20px; */
 }
 .calendar-right {
   flex: 1;
   overflow-y: auto;
 }
-.timeline {
-  margin: 20px 0;
-  border-left: 2px solid #409EFF;
-  padding-left: 10px;
+.right-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* background-color: #f5f7fa; */
+  /* padding: 10px 15px; */
+  /* border: 1px solid #ebeef5; */
+  border-bottom: none;
 }
-.days-bar {
-  background: #409EFF;
+.right-title {
+  font-size: 16px;
+  /* font-weight: bold; */
+  color: #303133;
+}
+.right-checkbox {
+  margin-right: 10px;
+}
+.subsidy-table {
+  border-top: none;
+}
+.date-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+.date-text {
+  text-align: right;
+  line-height: 1.5;
+}
+.location-icon {
+  color: #909399;
+  font-size: 16px;
+}
+.custom-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-weight: normal;
+}
+.standard-text {
+  color: #ff7d00;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.amount-input {
+  width: 80px;
+}
+.amount-input :deep(.el-input__wrapper) {
+  padding: 0 10px;
+}
+.amount-input :deep(.el-input__inner) {
+  text-align: center;
+  color: #606266;
+}
+.amount-input.is-disabled :deep(.el-input__inner) {
+  color: #c0c4cc;
+}
+.type-header {
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+}
+.type-label {
+  color: #303133;
+  margin-right: 15px;
+}
+.type-value {
+  color: #ff7d00;
+  font-size: 16px;
+}
+.itinerary-card {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+}
+.itinerary-row {
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+.row-label {
+  color: #606266;
+  font-size: 13px;
+  width: 60px;
+  flex-shrink: 0;
+}
+.timeline-node {
+  width: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  flex-shrink: 0;
+}
+.node-top {
+  transform: translateY(-8px);
+}
+.node-bottom {
+  transform: translateY(8px);
+}
+.donut-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid #0084ff;
+  background: #fff;
+  z-index: 2;
+  box-sizing: border-box;
+}
+.line {
+  position: absolute;
+  width: 2px;
+  background-color: #0084ff;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.line-down {
+  top: 50%;
+  bottom: -9px;
+}
+.line-up {
+  top: -9px;
+  bottom: 50%;
+}
+.row-value {
+  color: #303133;
+  font-size: 13px;
+  flex: 1;
+}
+.blue-bar {
+  background-color: #0084ff;
   color: #fff;
-  padding: 5px;
-  margin: 10px 0;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  margin: 10px -5px;
+  font-size: 13px;
 }
-.amount-summary {
-  margin-top: 50px;
-  line-height: 2;
+.amount-card {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 20px 15px;
+}
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.amount-row:last-child {
+  margin-bottom: 0;
+}
+.amount-label {
+  color: #606266;
+  font-size: 13px;
+}
+.amount-value {
+  display: flex;
+  align-items: baseline;
+}
+.currency {
+  color: #606266;
+  font-size: 12px;
+  margin-right: 15px;
+}
+.number {
+  color: #ff7d00;
+  font-size: 18px;
 }
 .cell-content {
   text-align: center;
@@ -1041,7 +1286,7 @@ const handleSubmit = () => {
   border-bottom: none;
 }
 :deep(.el-collapse-item__content) {
-  padding-top: 20px;
+  padding-top: 15px;
 }
 :deep(.el-form-item__label) {
   font-size: 14px;
@@ -1053,15 +1298,62 @@ const handleSubmit = () => {
   font-size: 16px;
   height: 36px;
 }
-.itinerary-form-custom :deep(.el-form-item__label::after) {
+.base-form :deep(.el-form-item.is-required .el-form-item__label::after),
+.itinerary-form-custom :deep(.el-form-item.is-required .el-form-item__label::after) {
   content: '*';
   color: #f56c6c;
   margin-left: 4px;
 }
+.base-form :deep(.el-form-item.is-required .el-form-item__label::before),
 .itinerary-form-custom :deep(.el-form-item.is-required .el-form-item__label::before) {
   display: none;
 }
-.custom-alert :deep(.el-alert__icon) {
-  /* margin-top: 2px; */
+.sub-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+.refresh-icon {
+  color: #409eff;
+  cursor: pointer;
+  margin: 0 4px;
+  font-size: 14px;
+}
+.refresh-icon:hover {
+  opacity: 0.8;
+}
+.percent-input :deep(.el-input__inner) {
+  text-align: right;
+}
+.right-align-input :deep(.el-input__inner) {
+  text-align: right;
+}
+.percent-input::after {
+  content: '%';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #606266;
+  font-size: 14px;
+}
+.percent-input :deep(.el-input__wrapper) {
+  padding-right: 25px;
+}
+.persistent-blue-btn {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+.persistent-blue-btn:hover {
+  color: #409eff !important;
+  border-color: #c6e2ff !important;
+  background-color: #ecf5ff !important;
+}
+.black-text-alert :deep(.el-alert__title) {
+  color: #303133 !important;
+}
+
+
+
 </style>
