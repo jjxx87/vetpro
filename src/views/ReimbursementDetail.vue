@@ -204,7 +204,7 @@
             <el-button type="primary" link @click="addApportionment">⊕ 添加一行</el-button>
           </div>
           <div class="apportion-footer">
-            <span>合计</span>
+            <span style="color: #666;">合计</span>
             <span>100.00%</span>
             <span>CNY {{ totalSubsidy.toFixed(2) }}</span>
           </div>
