@@ -438,13 +438,19 @@ import dayjs from 'dayjs'
 
 const formData = reactive({
   id: '',
+  title: '',
   reimbursementTitle: '',
+  employeeId: '',
   reimburserId: '',
+  departmentId: '',
   reimDepartmentId: '',
+  companyId: '',
   reimCompanyId: '',
   businessTypeId: '',
+  reason: '',
   businessTripReason: '',
   status: 0,
+  createTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
   creationTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
   itineraries: [],
   subsidies: [],
@@ -895,6 +901,13 @@ const doSubmit = (status) => {
   formData.mealAllowance = String(totalMeal.value.toFixed(2))
   formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
   formData.phoneAllowance = String(totalComm.value.toFixed(2))
+
+  formData.reimbursementTitle = formData.title
+  formData.reimburserId = formData.employeeId
+  formData.reimDepartmentId = formData.departmentId
+  formData.reimCompanyId = formData.companyId
+  formData.businessTripReason = formData.reason
+  formData.creationTime = formData.createTime || formData.creationTime
   
   const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
   if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
