@@ -205,6 +205,27 @@ onMounted(() => {
 })
 
 const filteredList = computed(() => {
+  const selectedBusinessTypeId = searchForm.value.businessTypeId
+  let businessTypeIdSet = null
+  if (selectedBusinessTypeId) {
+    const childrenByParentId = new Map()
+    dictStore.businessTypes.forEach(t => {
+      const parentId = t.superiorId
+      if (!childrenByParentId.has(parentId)) childrenByParentId.set(parentId, [])
+      childrenByParentId.get(parentId).push(t.businessTypeId)
+    })
+
+    businessTypeIdSet = new Set()
+    const stack = [selectedBusinessTypeId]
+    while (stack.length) {
+      const id = stack.pop()
+      if (businessTypeIdSet.has(id)) continue
+      businessTypeIdSet.add(id)
+      const children = childrenByParentId.get(id) || []
+      children.forEach(childId => stack.push(childId))
+    }
+  }
+
   return allData.value.filter(item => {
     let match = true
     if (searchForm.value.reimNo && !item.id?.includes(searchForm.value.reimNo)) match = false
@@ -213,7 +234,7 @@ const filteredList = computed(() => {
     if (searchForm.value.companyId && item.reimCompanyId !== searchForm.value.companyId) match = false
     if (searchForm.value.departmentId && item.reimDepartmentId !== searchForm.value.departmentId) match = false
     if (searchForm.value.employeeId && item.reimburserId !== searchForm.value.employeeId) match = false
-    if (searchForm.value.businessTypeId && item.businessTypeId !== searchForm.value.businessTypeId) match = false
+    if (businessTypeIdSet && !businessTypeIdSet.has(item.businessTypeId)) match = false
     return match
   })
 })
