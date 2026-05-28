@@ -31,45 +31,40 @@ CREATE TABLE `reimbursement` (
 DROP TABLE IF EXISTS `reimbursement_itinerary`;
 CREATE TABLE `reimbursement_itinerary` (
   `id` varchar(32) NOT NULL COMMENT '主键 ID',
-  `reimbursement_id` varchar(32) NOT NULL COMMENT '关联主表 ID',
+  `reimbursement_id` varchar(32) DEFAULT NULL COMMENT '关联主表 ID',
   `employee_id` varchar(32) DEFAULT NULL COMMENT '出行人 ID',
-  `start_city` varchar(32) DEFAULT NULL COMMENT '出发城市编号',
-  `end_city` varchar(32) DEFAULT NULL COMMENT '到达城市编号',
-  `start_date` date DEFAULT NULL COMMENT '出发日期',
-  `end_date` date DEFAULT NULL COMMENT '到达日期',
-  `reason` text DEFAULT NULL COMMENT '行程说明',
-  PRIMARY KEY (`id`),
-  KEY `idx_reimbursement_id` (`reimbursement_id`)
+  `start_city` varchar(20) DEFAULT NULL COMMENT '出发城市编号',
+  `end_city` varchar(20) DEFAULT NULL COMMENT '到达城市编号',
+  `start_date` varchar(20) DEFAULT NULL COMMENT '出发日期',
+  `end_date` varchar(20) DEFAULT NULL COMMENT '到达日期',
+  `reason` varchar(500) DEFAULT NULL COMMENT '行程说明',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报销单-补录行程表';
 
 DROP TABLE IF EXISTS `reimbursement_subsidy`;
 CREATE TABLE `reimbursement_subsidy` (
   `id` varchar(32) NOT NULL COMMENT '主键 ID',
-  `reimbursement_id` varchar(32) NOT NULL COMMENT '关联主表 ID',
+  `reimbursement_id` varchar(32) DEFAULT NULL COMMENT '关联主表 ID',
   `employee_id` varchar(32) DEFAULT NULL COMMENT '出行人 ID',
-  `start_date` date DEFAULT NULL COMMENT '开始日期',
-  `end_date` date DEFAULT NULL COMMENT '结束日期',
-  `start_city` varchar(32) DEFAULT NULL COMMENT '出发城市编号',
-  `end_city` varchar(32) DEFAULT NULL COMMENT '到达城市编号',
-  `days` int(11) DEFAULT '0' COMMENT '补助天数',
-  `meal_amount` decimal(10,2) DEFAULT '0.00' COMMENT '餐费金额',
-  `traffic_amount` decimal(10,2) DEFAULT '0.00' COMMENT '交通金额',
-  `comm_amount` decimal(10,2) DEFAULT '0.00' COMMENT '通讯金额',
-  `apply_amount` decimal(10,2) DEFAULT '0.00' COMMENT '申请金额',
-  `subsidy_amount` decimal(10,2) DEFAULT '0.00' COMMENT '补助金额',
-  `calendar` json DEFAULT NULL COMMENT '补助日历明细JSON',
-  PRIMARY KEY (`id`),
-  KEY `idx_reimbursement_id` (`reimbursement_id`)
+  `start_date` varchar(20) DEFAULT NULL COMMENT '开始日期',
+  `end_date` varchar(20) DEFAULT NULL COMMENT '结束日期',
+  `start_city` varchar(20) DEFAULT NULL COMMENT '出发城市编号',
+  `end_city` varchar(20) DEFAULT NULL COMMENT '到达城市编号',
+  `days` int(11) DEFAULT NULL COMMENT '补助天数',
+  `meal_amount` varchar(20) DEFAULT NULL COMMENT '餐费金额',
+  `traffic_amount` varchar(20) DEFAULT NULL COMMENT '交通金额',
+  `comm_amount` varchar(20) DEFAULT NULL COMMENT '通讯金额',
+  `calendar` text DEFAULT NULL COMMENT '补助日历明细JSON',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报销单-补助信息表';
 
 DROP TABLE IF EXISTS `reimbursement_apportionment`;
 CREATE TABLE `reimbursement_apportionment` (
   `id` varchar(32) NOT NULL COMMENT '主键 ID',
-  `reimbursement_id` varchar(32) NOT NULL COMMENT '关联主表 ID',
+  `reimbursement_id` varchar(32) DEFAULT NULL COMMENT '关联主表 ID',
   `company_id` varchar(32) DEFAULT NULL COMMENT '费用归属公司 ID',
   `project_id` varchar(32) DEFAULT NULL COMMENT '项目 ID',
   `percent` decimal(5,2) DEFAULT '0.00' COMMENT '分摊比例(%)',
   `amount` decimal(10,2) DEFAULT '0.00' COMMENT '分摊金额',
-  PRIMARY KEY (`id`),
-  KEY `idx_reimbursement_id` (`reimbursement_id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='报销单-费用分摊表';
