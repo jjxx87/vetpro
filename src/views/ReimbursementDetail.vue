@@ -13,7 +13,7 @@
           <template #title>
             <div class="collapse-title-custom title-base">基础信息</div>
           </template>
-          <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="base-form">
+          <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" class="base-form" :disabled="isReadOnly">
             <el-row :gutter="20">
               <el-col :span="24">
                 <el-form-item label="报销标题" prop="title">
@@ -60,7 +60,7 @@
           <template #title>
             <div class="collapse-title-custom title-base">
               <span>补录行程</span>
-              <el-button type="primary" link @click.stop="openItineraryDialog()">⊕ 补录行程</el-button>
+              <el-button type="primary" link @click.stop="openItineraryDialog()" :disabled="isReadOnly">⊕ 补录行程</el-button>
             </div>
           </template>
           <el-table :data="formData.itineraries" style="width: 100%" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
@@ -77,9 +77,9 @@
             <el-table-column prop="reason" label="行程说明" show-overflow-tooltip />
             <el-table-column label="操作" width="150">
               <template #default="{ row, $index }">
-                <el-button type="primary" link @click="deleteItinerary($index)"><el-icon><Delete /></el-icon></el-button>
-                <el-button type="primary" link @click="openItineraryDialog(row, $index)"><el-icon><EditPen /></el-icon></el-button>
-                <el-button type="primary" link @click="copyItinerary(row)"><el-icon><CopyDocument /></el-icon></el-button>
+                <el-button type="primary" link @click="deleteItinerary($index)" :disabled="isReadOnly"><el-icon><Delete /></el-icon></el-button>
+                <el-button type="primary" link @click="openItineraryDialog(row, $index)" :disabled="isReadOnly"><el-icon><EditPen /></el-icon></el-button>
+                <el-button type="primary" link @click="copyItinerary(row)" :disabled="isReadOnly"><el-icon><CopyDocument /></el-icon></el-button>
                 
               </template>
             </el-table-column>
@@ -104,7 +104,7 @@
             <el-table-column label="出行人">
               <template #default="{ row }">{{ getEmployeeDisplay(row.employeeId) }}</template>
             </el-table-column>
-            <el-table-column label="出差日期">
+            <el-table-column label="出差日期" min-width="130">
               <template #default="{ row }">{{ row.startDate }} 至 {{ row.endDate }}</template>
             </el-table-column>
             <el-table-column prop="days" label="补助天数" />
@@ -126,7 +126,7 @@
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ row, $index }">
-                <el-button type="primary" link @click="openSubsidyDialog(row, $index)"><el-icon><EditPen /></el-icon></el-button>
+                <el-button type="primary" link @click="openSubsidyDialog(row, $index)" :disabled="isReadOnly"><el-icon><EditPen /></el-icon></el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -160,14 +160,14 @@
                 费用归属<span style="color: #f56c6c">*</span>
               </template>
               <template #default="{ row, $index }">
-                <el-select v-model="row.companyId" placeholder="请选择" style="width: 100%" :disabled="$index === 0 && false">
+                <el-select v-model="row.companyId" placeholder="请选择" style="width: 100%" :disabled="isReadOnly || ($index === 0 && false)">
                   <el-option v-for="item in dictStore.companies" :key="item.reimCompanyId" :label="item.reimCompanyName" :value="item.reimCompanyId" />
                 </el-select>
               </template>
             </el-table-column>
             <el-table-column label="项目">
               <template #default="{ row }">
-                <el-select v-model="row.projectId" placeholder="请选择" style="width: 100%" clearable>
+                <el-select v-model="row.projectId" placeholder="请选择" style="width: 100%" clearable :disabled="isReadOnly">
                   <el-option v-for="item in dictStore.projects" :key="item.projectId" :label="item.projectName" :value="item.projectId" />
                 </el-select>
               </template>
@@ -176,12 +176,12 @@
               <template #header>
                 <div style="display: flex; align-items: center; justify-content: flex-end;">
                   <span>分摊比例(%)</span>
-                  <el-icon @click="evenApportion" class="refresh-icon"><Refresh /></el-icon>
+                  <el-icon @click="evenApportion" :class="['refresh-icon', { 'refresh-icon-disabled': isReadOnly }]"><Refresh /></el-icon>
                   <span style="color: #f56c6c">*</span>
                 </div>
               </template>
               <template #default="{ row, $index }">
-                <el-input-number v-model="row.percent" :min="0" :max="100" :precision="2" :controls="false" :disabled="$index === 0" @change="handleApportionPercentChange($index)" style="width: 100%" class="percent-input right-align-input" />
+                <el-input-number v-model="row.percent" :min="0" :max="100" :precision="2" :controls="false" :disabled="isReadOnly || $index === 0" @change="handleApportionPercentChange($index)" style="width: 100%" class="percent-input right-align-input" />
               </template>
             </el-table-column>
             <el-table-column align="right">
@@ -196,12 +196,12 @@
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ $index }">
-                <el-button type="primary" link @click="deleteApportionment($index)"><el-icon><Delete /></el-icon></el-button>
+                <el-button type="primary" link @click="deleteApportionment($index)" :disabled="isReadOnly"><el-icon><Delete /></el-icon></el-button>
               </template>
             </el-table-column>
           </el-table>
           <div style="text-align: center; margin-top: 10px;">
-            <el-button type="primary" link @click="addApportionment">⊕ 添加一行</el-button>
+            <el-button type="primary" link @click="addApportionment" :disabled="isReadOnly">⊕ 添加一行</el-button>
           </div>
           <div class="apportion-footer">
             <span style="color: #666;">合计</span>
@@ -215,18 +215,18 @@
           <template #title>
             <div class="collapse-title-custom">
               <span>备注信息</span>
-              <el-button type="primary" link @click.stop="clearRemarks"><el-icon><Delete /></el-icon>删除备注</el-button>
+              <el-button type="primary" link @click.stop="clearRemarks" :disabled="isReadOnly"><el-icon><Delete /></el-icon>删除备注</el-button>
             </div>
           </template>
-          <el-input type="textarea" v-model="formData.remarks" maxlength="1000" show-word-limit placeholder="请输入备注信息" :rows="4" />
+          <el-input type="textarea" v-model="formData.remarks" maxlength="1000" show-word-limit placeholder="请输入备注信息" :rows="4" :disabled="isReadOnly" />
         </el-collapse-item>
       </el-collapse>
     </div>
 
     <!-- Footer Buttons -->
     <div class="footer-fixed">
-      <el-button @click="handleClose" class="persistent-blue-btn">关闭</el-button>
-      <el-button type="primary" @click="handleSubmit" :disabled="formData.status === 1 || formData.status === 2">提交</el-button>
+      <el-button @click="handleClose" class="persistent-blue-btn" :disabled="isReadOnly">关闭</el-button>
+      <el-button type="primary" @click="handleSubmit" :disabled="isReadOnly">提交</el-button>
     </div>
 
     <!-- 补录行程弹窗 -->
@@ -237,7 +237,7 @@
         </template>
         <div style="font-size: 14px; color: #606266; line-height: 1.5;">跨天跨城行程填写说明： 出发城市-到达城市：武汉-北京; 出发日期-到达日期：1号-5号; 1号~5号补助按北京匹配;</div>
       </el-alert>
-      <el-form :model="itineraryForm" :rules="itineraryRules" ref="itineraryFormRef" label-width="120px" class="itinerary-form-custom">
+      <el-form :model="itineraryForm" :rules="itineraryRules" ref="itineraryFormRef" label-width="120px" class="itinerary-form-custom" :disabled="isReadOnly">
         <el-row>
           <el-col :span="16">
             <el-form-item label="出行人" prop="employeeId">
@@ -275,7 +275,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="itineraryVisible = false" class="persistent-blue-btn">取消</el-button>
-          <el-button type="primary" @click="saveItinerary">保存</el-button>
+          <el-button type="primary" @click="saveItinerary" :disabled="isReadOnly">保存</el-button>
         </span>
       </template>
     </el-dialog>
@@ -348,7 +348,7 @@
         <div class="calendar-right">
           <div class="right-header">
             <span class="right-title">出差补助</span>
-            <el-checkbox v-model="calendarSelectAll" @change="handleCalendarSelectAll" class="right-checkbox">全选</el-checkbox>
+            <el-checkbox v-model="calendarSelectAll" @change="handleCalendarSelectAll" class="right-checkbox" :disabled="isReadOnly">全选</el-checkbox>
           </div>
           <el-table :data="currentSubsidy.calendar" style="width: 100%" border class="subsidy-table" :header-cell-style="{ backgroundColor: '#f5f7fa', color: '#606266', fontWeight: 'normal' }">
             <el-table-column label="出差日期" width="160" align="center">
@@ -356,7 +356,7 @@
                 <div class="date-cell">
                   <div class="date-text">
                     <div style="color: #606266; font-size: 13px; margin-bottom: 2px;">{{ row.date }}</div>
-                    <div style="color: #909399; font-size: 13px;">{{ row.weekday }} <el-checkbox v-model="row.selected" @change="handleRowSelectChange(row)" style="margin-left: 5px; height: 14px;" /></div>
+                    <div style="color: #909399; font-size: 13px;">{{ row.weekday }} <el-checkbox v-model="row.selected" @change="handleRowSelectChange(row)" style="margin-left: 5px; height: 14px;" :disabled="isReadOnly" /></div>
                   </div>
                   <el-icon class="location-icon"><Location /></el-icon>
                 </div>
@@ -367,42 +367,42 @@
             </el-table-column>
             <el-table-column align="center">
               <template #header>
-                <div class="custom-header">餐费补助 <el-checkbox v-model="colSelect.meal" @change="handleColSelect('meal')" /></div>
+                <div class="custom-header">餐费补助 <el-checkbox v-model="colSelect.meal" @change="handleColSelect('meal')" :disabled="isReadOnly" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
                   <div class="standard-text">CNY {{ row.mealStandard.toFixed(2) }} / 天</div>
                   <div class="input-row">
-                    <el-checkbox v-model="row.mealSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.mealAmount" :min="0" :max="row.mealStandard" :precision="2" :controls="false" :disabled="!row.mealSelected" class="amount-input" />
+                    <el-checkbox v-model="row.mealSelected" @change="handleCellSelect(row)" :disabled="isReadOnly" />
+                    <el-input-number v-model="row.mealAmount" :min="0" :max="row.mealStandard" :precision="2" :controls="false" :disabled="isReadOnly || !row.mealSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
             </el-table-column>
             <el-table-column align="center">
               <template #header>
-                <div class="custom-header">交通补助 <el-checkbox v-model="colSelect.traffic" @change="handleColSelect('traffic')" /></div>
+                <div class="custom-header">交通补助 <el-checkbox v-model="colSelect.traffic" @change="handleColSelect('traffic')" :disabled="isReadOnly" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
                   <div class="standard-text">CNY {{ row.trafficStandard.toFixed(2) }} / 天</div>
                   <div class="input-row">
-                    <el-checkbox v-model="row.trafficSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.trafficAmount" :min="0" :max="row.trafficStandard" :precision="2" :controls="false" :disabled="!row.trafficSelected" class="amount-input" />
+                    <el-checkbox v-model="row.trafficSelected" @change="handleCellSelect(row)" :disabled="isReadOnly" />
+                    <el-input-number v-model="row.trafficAmount" :min="0" :max="row.trafficStandard" :precision="2" :controls="false" :disabled="isReadOnly || !row.trafficSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
             </el-table-column>
             <el-table-column align="center">
               <template #header>
-                <div class="custom-header">通讯补助 <el-checkbox v-model="colSelect.comm" @change="handleColSelect('comm')" /></div>
+                <div class="custom-header">通讯补助 <el-checkbox v-model="colSelect.comm" @change="handleColSelect('comm')" :disabled="isReadOnly" /></div>
               </template>
               <template #default="{ row }">
                 <div class="cell-content">
                   <div class="standard-text">CNY {{ row.commStandard.toFixed(2) }} / 天</div>
                   <div class="input-row">
-                    <el-checkbox v-model="row.commSelected" @change="handleCellSelect(row)" />
-                    <el-input-number v-model="row.commAmount" :min="0" :max="row.commStandard" :precision="2" :controls="false" :disabled="!row.commSelected" class="amount-input" />
+                    <el-checkbox v-model="row.commSelected" @change="handleCellSelect(row)" :disabled="isReadOnly" />
+                    <el-input-number v-model="row.commAmount" :min="0" :max="row.commStandard" :precision="2" :controls="false" :disabled="isReadOnly || !row.commSelected" class="amount-input" />
                   </div>
                 </div>
               </template>
@@ -413,7 +413,7 @@
       <template #footer>
         <span class="dialog-footer sub-footer">
           <el-button @click="subsidyVisible = false" class="persistent-blue-btn">取消</el-button>
-          <el-button type="primary" @click="saveSubsidy">确认</el-button>
+          <el-button type="primary" @click="saveSubsidy" :disabled="isReadOnly">确认</el-button>
         </span>
       </template>
     </el-dialog>
@@ -473,6 +473,7 @@ const rules = {
   businessTypeId: [{ required: true, message: '请选择业务类型', trigger: 'change' }]
 }
 const formRef = ref(null)
+const isReadOnly = computed(() => formData.status === 1 || formData.status === 2)
 
 onMounted(async () => {
   const id = route.params.id
@@ -569,6 +570,7 @@ const itineraryRules = {
 }
 
 const openItineraryDialog = (row, index = -1) => {
+  if (isReadOnly.value) return
   editItineraryIndex.value = index
   if (row) {
     Object.assign(itineraryForm, JSON.parse(JSON.stringify(row)))
@@ -585,10 +587,12 @@ const openItineraryDialog = (row, index = -1) => {
 }
 
 const copyItinerary = (row) => {
+  if (isReadOnly.value) return
   openItineraryDialog(row) // pass row without index to act as copy (new)
 }
 
 const deleteItinerary = (index) => {
+  if (isReadOnly.value) return
   ElMessageBox.confirm('是否确定删除该行程信息？', '提示', { type: 'warning' }).then(() => {
     formData.itineraries.splice(index, 1)
     formData.subsidies.splice(index, 1)
@@ -597,6 +601,7 @@ const deleteItinerary = (index) => {
 }
 
 const saveItinerary = () => {
+  if (isReadOnly.value) return
   itineraryFormRef.value.validate((valid) => {
     if (valid) {
       itineraryForm.startDate = itineraryForm.dateRange[0].split(' ')[0]
@@ -686,6 +691,7 @@ const currentSubsidy = ref(null)
 const currentSubsidyIndex = ref(-1)
 
 const openSubsidyDialog = (row, index) => {
+  if (isReadOnly.value) return
   currentSubsidyIndex.value = index
   currentSubsidy.value = JSON.parse(JSON.stringify(row))
   updateCalendarSelectionState()
@@ -717,6 +723,7 @@ const calendarSelectAll = ref(true)
 const colSelect = reactive({ meal: true, traffic: true, comm: true })
 
 const handleCalendarSelectAll = (val) => {
+  if (isReadOnly.value) return
   colSelect.meal = val
   colSelect.traffic = val
   colSelect.comm = val
@@ -738,6 +745,7 @@ const handleCalendarSelectAll = (val) => {
 }
 
 const handleRowSelectChange = (row) => {
+  if (isReadOnly.value) return
   row.mealSelected = row.selected
   row.trafficSelected = row.selected
   row.commSelected = row.selected
@@ -754,6 +762,7 @@ const handleRowSelectChange = (row) => {
 }
 
 const handleColSelect = (type) => {
+  if (isReadOnly.value) return
   const val = colSelect[type]
   currentSubsidy.value.calendar.forEach(row => {
     row[`${type}Selected`] = val
@@ -768,6 +777,7 @@ const handleColSelect = (type) => {
 }
 
 const handleCellSelect = (row) => {
+  if (isReadOnly.value) return
   if (!row.mealSelected) row.mealAmount = 0
   else if(row.mealAmount === 0) row.mealAmount = row.mealStandard
   
@@ -790,6 +800,7 @@ const updateCalendarSelectionState = () => {
 }
 
 const saveSubsidy = () => {
+  if (isReadOnly.value) return
   currentSubsidy.value.subsidyAmount = currentSubsidyAmount.value
   currentSubsidy.value.applyAmount = currentSubsidyStandardAmount.value
   formData.subsidies[currentSubsidyIndex.value] = JSON.parse(JSON.stringify(currentSubsidy.value))
@@ -810,11 +821,13 @@ watch(totalSubsidy, (newVal) => {
 })
 
 const addApportionment = () => {
+  if (isReadOnly.value) return
   formData.apportionments.push({ companyId: '', projectId: '', percent: 0, amount: 0 })
   recalculateApportionmentPercent()
 }
 
 const deleteApportionment = (index) => {
+  if (isReadOnly.value) return
   if (formData.apportionments.length <= 1) {
     return ElMessage.warning('至少保留一条分摊信息')
   }
@@ -825,6 +838,7 @@ const deleteApportionment = (index) => {
 }
 
 const evenApportion = () => {
+  if (isReadOnly.value) return
   const count = formData.apportionments.length
   if (count === 0) return
   const avgPercent = Math.floor(10000 / count) / 100
@@ -884,18 +898,30 @@ const recalculateApportionment = () => {
 }
 
 const clearRemarks = () => {
+  if (isReadOnly.value) return
   ElMessageBox.confirm('是否确定删除备注？', '提示', { type: 'warning' }).then(() => {
     formData.remarks = ''
   })
 }
 
 const handleClose = () => {
-  ElMessageBox.confirm('是否确定关闭当前页面？未保存的数据将丢失', '提示', { type: 'warning' }).then(() => {
-    router.back()
+  if (isReadOnly.value) return
+  ElMessageBox.confirm('是否保存为草稿？', '提示', {
+    confirmButtonText: '保存草稿',
+    cancelButtonText: '不保存',
+    type: 'warning',
+    distinguishCancelAndClose: true
   })
+    .then(() => {
+      doSubmit(0)
+    })
+    .catch((action) => {
+      if (action === 'cancel') router.back()
+    })
 }
 
 const doSubmit = (status) => {
+  if (isReadOnly.value) return
   formData.status = status
   formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
   formData.mealAllowance = String(totalMeal.value.toFixed(2))
@@ -932,6 +958,7 @@ const doSubmit = (status) => {
 }
 
 const handleSubmit = () => {
+  if (isReadOnly.value) return
   formRef.value.validate((valid) => {
     if (valid) {
       if (formData.itineraries.length === 0) {
@@ -1334,6 +1361,11 @@ const handleSubmit = () => {
 }
 .refresh-icon:hover {
   opacity: 0.8;
+}
+.refresh-icon-disabled {
+  pointer-events: none;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .percent-input :deep(.el-input__inner) {
   text-align: right;
