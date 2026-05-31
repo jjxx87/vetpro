@@ -701,7 +701,7 @@ const openSubsidyDialog = (row, index) => {
 const currentSubsidyStandardAmount = computed(() => {
   if (!currentSubsidy.value) return 0
   return currentSubsidy.value.calendar.reduce((sum, row) => {
-    return sum + (row.mealSelected ? row.mealStandard : 0) + (row.trafficSelected ? row.trafficStandard : 0) + (row.commSelected ? row.commStandard : 0)
+    return sum + (row.mealStandard || 0) + (row.trafficStandard || 0) + (row.commStandard || 0)
   }, 0)
 })
 
@@ -732,11 +732,7 @@ const handleCalendarSelectAll = (val) => {
     row.mealSelected = val
     row.trafficSelected = val
     row.commSelected = val
-    if (!val) {
-      row.mealAmount = 0
-      row.trafficAmount = 0
-      row.commAmount = 0
-    } else {
+    if (val) {
       row.mealAmount = row.mealStandard
       row.trafficAmount = row.trafficStandard
       row.commAmount = row.commStandard
@@ -749,11 +745,7 @@ const handleRowSelectChange = (row) => {
   row.mealSelected = row.selected
   row.trafficSelected = row.selected
   row.commSelected = row.selected
-  if (!row.selected) {
-    row.mealAmount = 0
-    row.trafficAmount = 0
-    row.commAmount = 0
-  } else {
+  if (row.selected) {
     row.mealAmount = row.mealStandard
     row.trafficAmount = row.trafficStandard
     row.commAmount = row.commStandard
@@ -766,9 +758,7 @@ const handleColSelect = (type) => {
   const val = colSelect[type]
   currentSubsidy.value.calendar.forEach(row => {
     row[`${type}Selected`] = val
-    if (!val) {
-      row[`${type}Amount`] = 0
-    } else {
+    if (val && row[`${type}Amount`] == null) {
       row[`${type}Amount`] = row[`${type}Standard`]
     }
     row.selected = row.mealSelected && row.trafficSelected && row.commSelected
@@ -778,14 +768,11 @@ const handleColSelect = (type) => {
 
 const handleCellSelect = (row) => {
   if (isReadOnly.value) return
-  if (!row.mealSelected) row.mealAmount = 0
-  else if(row.mealAmount === 0) row.mealAmount = row.mealStandard
+  if (row.mealSelected && row.mealAmount == null) row.mealAmount = row.mealStandard
   
-  if (!row.trafficSelected) row.trafficAmount = 0
-  else if(row.trafficAmount === 0) row.trafficAmount = row.trafficStandard
+  if (row.trafficSelected && row.trafficAmount == null) row.trafficAmount = row.trafficStandard
   
-  if (!row.commSelected) row.commAmount = 0
-  else if(row.commAmount === 0) row.commAmount = row.commStandard
+  if (row.commSelected && row.commAmount == null) row.commAmount = row.commStandard
 
   row.selected = row.mealSelected && row.trafficSelected && row.commSelected
   updateCalendarSelectionState()

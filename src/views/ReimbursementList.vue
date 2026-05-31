@@ -131,7 +131,7 @@
         </el-table-column>
         <el-table-column prop="reimbursementTitle" label="报销标题" min-width="160" show-overflow-tooltip>
           <template #default="{ row }">
-            <div style="color: #409EFF;">{{ row.reimbursementTitle }}</div>
+            <el-link @click="handleEdit(row)" style="color: #409EFF;">{{ row.reimbursementTitle }}</el-link>
           </template>
         </el-table-column>
         <el-table-column prop="businessTripReason" label="报销事由" min-width="100" show-overflow-tooltip />

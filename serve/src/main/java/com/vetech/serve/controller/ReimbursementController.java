@@ -26,7 +26,9 @@ public class ReimbursementController {
 
     @GetMapping("/list")
     public List<Reimbursement> list() {
-        return reimbursementService.list();
+        return reimbursementService.lambdaQuery()
+                .orderByDesc(Reimbursement::getCreationTime)
+                .list();
     }
 
     @PutMapping
