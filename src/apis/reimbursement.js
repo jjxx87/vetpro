@@ -41,3 +41,11 @@ export const deleteReimbursement = (id) => {
     method: 'delete'
   })
 }
+
+export const exportReimbursementExcel = (id) => {
+  return request({
+    url: `/api/reimbursement/${id}/export`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}

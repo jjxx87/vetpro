@@ -166,7 +166,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDictStore } from '../stores/dict'
 import { DocumentDelete, EditPen, MoreFilled, Operation } from '@element-plus/icons-vue'
-import { getReimbursementList, deleteReimbursement, updateReimbursement } from '../apis/reimbursement'
+import { getReimbursementList, deleteReimbursement, updateReimbursement, exportReimbursementExcel } from '../apis/reimbursement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -297,7 +297,21 @@ const handleVoid = (row) => {
 }
 
 const handlePrint = (row) => {
-  ElMessage.warning('打印功能待接入')
+  exportReimbursementExcel(row.id).then((blob) => {
+    const safeTitle = String(row.reimbursementTitle || '').replace(/[\\/:*?"<>|]/g, '_').slice(0, 50)
+    const filename = safeTitle ? `${safeTitle}_${row.id}.xlsx` : `reimbursement_${row.id}.xlsx`
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  }).catch(() => {
+    ElMessage.error('导出失败')
+  })
 }
 
 const handleSizeChange = (val) => {
