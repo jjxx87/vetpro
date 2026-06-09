@@ -5,6 +5,8 @@ import com.vetech.serve.entity.ReimbursementApportionment;
 import com.vetech.serve.entity.ReimbursementItinerary;
 import com.vetech.serve.entity.ReimbursementSubsidy;
 import com.vetech.serve.service.IReimbursementService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -41,7 +43,9 @@ public class ReimbursementController {
     }
 
     @GetMapping("/list")
-    public List<Reimbursement> list(
+    public IPage<Reimbursement> list(
+            @RequestParam(required = false, defaultValue = "1") Integer current,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @RequestParam(required = false) String id,
             @RequestParam(required = false) String reimbursementTitle,
             @RequestParam(required = false) String businessTripReason,
@@ -49,6 +53,7 @@ public class ReimbursementController {
             @RequestParam(required = false) String reimDepartmentId,
             @RequestParam(required = false) String reimburserId,
             @RequestParam(required = false) List<String> businessTypeIds) {
+        Page<Reimbursement> page = new Page<>(current, size);
         return reimbursementService.lambdaQuery()
                 .like(StringUtils.hasText(id), Reimbursement::getId, id)
                 .like(StringUtils.hasText(reimbursementTitle), Reimbursement::getReimbursementTitle, reimbursementTitle)
@@ -58,7 +63,7 @@ public class ReimbursementController {
                 .eq(StringUtils.hasText(reimburserId), Reimbursement::getReimburserId, reimburserId)
                 .in(businessTypeIds != null && !businessTypeIds.isEmpty(), Reimbursement::getBusinessTypeId, businessTypeIds)
                 .orderByDesc(Reimbursement::getCreationTime)
-                .list();
+                .page(page);
     }
 
     @PutMapping

@@ -119,6 +119,8 @@
 
 | 字段名 | 类型 | 是否必传 | 备注 | 格式 |
 | :--- | :--- | :--- | :--- | :--- |
+| current | Integer | N | 当前页，默认1 | |
+| size | Integer | N | 每页大小，默认10 | |
 | id | String | N | 报销单ID | 模糊查询 |
 | reimbursementTitle | String | N | 报销单标题 | 模糊查询 |
 | businessTripReason | String | N | 出差事由 | 模糊查询 |
@@ -133,27 +135,17 @@
 | :--- | :--- | :--- | :--- | :--- |
 | code | Integer | Y | 状态码，200代表成功 | |
 | message | String | Y | 提示信息 | |
+| data | PageResult | Y | 分页结果对象 | 见下方 PageResult |
 
-## 1.6 导出报销单
+**PageResult**
 
-- **接口调用地址**：`/api/reimbursement/{id}/export`
-- **方法名**：`exportReimbursement`
-- **应用场景**：用户需要导出某条报销单的详细信息为Excel文件时调用。
-- **接口路径**：`/api/reimbursement/{id}/export`
-
-### 接口入参：
-
-路径参数：`id` (String, 必传) - 报销单主键 ID
-
-### 接口出参：
-
-Excel文件，包含多个工作表：
-- **Main**: 报销单主要信息
-- **Itineraries**: 补录行程信息
-- **Subsidies**: 补助信息汇总
-- **Calendar**: 补助日历明细
-- **Apportionments**: 费用分摊信息
-| data | List\<ReimbursementListBean> | Y | 报销单信息集合 | 见下方 ReimbursementListBean |
+| 字段名 | 类型 | 是否必传 | 备注 | 格式 |
+| :--- | :--- | :--- | :--- | :--- |
+| records | List\<ReimbursementListBean> | Y | 当前页数据列表 | |
+| total | Long | Y | 总记录数 | |
+| size | Integer | Y | 每页大小 | |
+| current | Integer | Y | 当前页码 | |
+| pages | Integer | Y | 总页数 | |
 
 **ReimbursementListBean**
 
@@ -169,6 +161,7 @@ Excel文件，包含多个工作表：
 | subsidyTotal | Decimal | Y | 补助总金额 | |
 | status | Integer | Y | 状态 | 0草稿 1已完成 2已作废 |
 | creationTime | String | Y | 创建时间 | yyyy-MM-dd HH:mm:ss |
+
 
 ## 1.4 作废报销单
 

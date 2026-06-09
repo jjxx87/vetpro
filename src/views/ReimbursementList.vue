@@ -184,9 +184,10 @@ const searchForm = ref({
 
 const currentPage = ref(1)
 const pageSize = ref(10)
+const total = ref(0)
 const loading = ref(false)
 
-const allData = ref([])
+const tableData = ref([])
 
 const fetchList = async () => {
   loading.value = true
@@ -214,6 +215,8 @@ const fetchList = async () => {
     }
 
     const params = {
+      current: currentPage.value,
+      size: pageSize.value,
       id: searchForm.value.reimNo || undefined,
       reimbursementTitle: searchForm.value.title || undefined,
       businessTripReason: searchForm.value.reason || undefined,
@@ -223,7 +226,8 @@ const fetchList = async () => {
       businessTypeIds: businessTypeIds
     }
     const res = await getReimbursementList(params)
-    allData.value = res || []
+    tableData.value = res.records || []
+    total.value = res.total || 0
   } catch (error) {
     console.error(error)
   } finally {
@@ -234,14 +238,6 @@ const fetchList = async () => {
 onMounted(() => {
   fetchList()
 })
-
-const tableData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return allData.value.slice(start, end)
-})
-
-const total = computed(() => allData.value.length)
 
 const handleSearch = () => {
   currentPage.value = 1
@@ -313,10 +309,13 @@ const handlePrint = (row) => {
 
 const handleSizeChange = (val) => {
   pageSize.value = val
+  currentPage.value = 1
+  fetchList()
 }
 
 const handleCurrentChange = (val) => {
   currentPage.value = val
+  fetchList()
 }
 
 // Display helpers
