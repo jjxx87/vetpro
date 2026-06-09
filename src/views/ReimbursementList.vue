@@ -191,7 +191,38 @@ const allData = ref([])
 const fetchList = async () => {
   loading.value = true
   try {
-    const res = await getReimbursementList()
+    const selectedBusinessTypeId = searchForm.value.businessTypeId
+    let businessTypeIds = undefined
+    if (selectedBusinessTypeId) {
+      const childrenByParentId = new Map()
+      dictStore.businessTypes.forEach(t => {
+        const parentId = t.superiorId
+        if (!childrenByParentId.has(parentId)) childrenByParentId.set(parentId, [])
+        childrenByParentId.get(parentId).push(t.businessTypeId)
+      })
+
+      const businessTypeIdSet = new Set()
+      const stack = [selectedBusinessTypeId]
+      while (stack.length) {
+        const id = stack.pop()
+        if (businessTypeIdSet.has(id)) continue
+        businessTypeIdSet.add(id)
+        const children = childrenByParentId.get(id) || []
+        children.forEach(childId => stack.push(childId))
+      }
+      businessTypeIds = Array.from(businessTypeIdSet).join(',')
+    }
+
+    const params = {
+      id: searchForm.value.reimNo || undefined,
+      reimbursementTitle: searchForm.value.title || undefined,
+      businessTripReason: searchForm.value.reason || undefined,
+      reimCompanyId: searchForm.value.companyId || undefined,
+      reimDepartmentId: searchForm.value.departmentId || undefined,
+      reimburserId: searchForm.value.employeeId || undefined,
+      businessTypeIds: businessTypeIds
+    }
+    const res = await getReimbursementList(params)
     allData.value = res || []
   } catch (error) {
     console.error(error)
@@ -204,51 +235,17 @@ onMounted(() => {
   fetchList()
 })
 
-const filteredList = computed(() => {
-  const selectedBusinessTypeId = searchForm.value.businessTypeId
-  let businessTypeIdSet = null
-  if (selectedBusinessTypeId) {
-    const childrenByParentId = new Map()
-    dictStore.businessTypes.forEach(t => {
-      const parentId = t.superiorId
-      if (!childrenByParentId.has(parentId)) childrenByParentId.set(parentId, [])
-      childrenByParentId.get(parentId).push(t.businessTypeId)
-    })
-
-    businessTypeIdSet = new Set()
-    const stack = [selectedBusinessTypeId]
-    while (stack.length) {
-      const id = stack.pop()
-      if (businessTypeIdSet.has(id)) continue
-      businessTypeIdSet.add(id)
-      const children = childrenByParentId.get(id) || []
-      children.forEach(childId => stack.push(childId))
-    }
-  }
-
-  return allData.value.filter(item => {
-    let match = true
-    if (searchForm.value.reimNo && !item.id?.includes(searchForm.value.reimNo)) match = false
-    if (searchForm.value.title && !item.reimbursementTitle?.includes(searchForm.value.title)) match = false
-    if (searchForm.value.reason && !item.businessTripReason?.includes(searchForm.value.reason)) match = false
-    if (searchForm.value.companyId && item.reimCompanyId !== searchForm.value.companyId) match = false
-    if (searchForm.value.departmentId && item.reimDepartmentId !== searchForm.value.departmentId) match = false
-    if (searchForm.value.employeeId && item.reimburserId !== searchForm.value.employeeId) match = false
-    if (businessTypeIdSet && !businessTypeIdSet.has(item.businessTypeId)) match = false
-    return match
-  })
-})
-
 const tableData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return filteredList.value.slice(start, end)
+  return allData.value.slice(start, end)
 })
 
-const total = computed(() => filteredList.value.length)
+const total = computed(() => allData.value.length)
 
 const handleSearch = () => {
   currentPage.value = 1
+  fetchList()
 }
 
 const handleClear = () => {

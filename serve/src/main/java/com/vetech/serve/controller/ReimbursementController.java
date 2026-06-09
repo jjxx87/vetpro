@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -40,8 +41,22 @@ public class ReimbursementController {
     }
 
     @GetMapping("/list")
-    public List<Reimbursement> list() {
+    public List<Reimbursement> list(
+            @RequestParam(required = false) String id,
+            @RequestParam(required = false) String reimbursementTitle,
+            @RequestParam(required = false) String businessTripReason,
+            @RequestParam(required = false) String reimCompanyId,
+            @RequestParam(required = false) String reimDepartmentId,
+            @RequestParam(required = false) String reimburserId,
+            @RequestParam(required = false) List<String> businessTypeIds) {
         return reimbursementService.lambdaQuery()
+                .like(StringUtils.hasText(id), Reimbursement::getId, id)
+                .like(StringUtils.hasText(reimbursementTitle), Reimbursement::getReimbursementTitle, reimbursementTitle)
+                .like(StringUtils.hasText(businessTripReason), Reimbursement::getBusinessTripReason, businessTripReason)
+                .eq(StringUtils.hasText(reimCompanyId), Reimbursement::getReimCompanyId, reimCompanyId)
+                .eq(StringUtils.hasText(reimDepartmentId), Reimbursement::getReimDepartmentId, reimDepartmentId)
+                .eq(StringUtils.hasText(reimburserId), Reimbursement::getReimburserId, reimburserId)
+                .in(businessTypeIds != null && !businessTypeIds.isEmpty(), Reimbursement::getBusinessTypeId, businessTypeIds)
                 .orderByDesc(Reimbursement::getCreationTime)
                 .list();
     }

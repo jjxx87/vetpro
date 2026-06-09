@@ -1,10 +1,11 @@
 import request from '../utils/request'
 
 // 获取报销单列表
-export const getReimbursementList = () => {
+export const getReimbursementList = (params) => {
   return request({
     url: '/api/reimbursement/list',
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 
