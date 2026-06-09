@@ -270,9 +270,7 @@
               <el-input type="textarea" v-model="itineraryForm.reason" maxlength="500" show-word-limit placeholder="请输入" />
             </el-form-item>
           </el-col>
-        </el-row>
-        
-        
+        </el-row>  
       </el-form>
       <template #footer>
         <span class="dialog-footer">
