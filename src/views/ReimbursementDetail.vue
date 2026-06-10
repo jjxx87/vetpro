@@ -474,6 +474,7 @@ const rules = {
 }
 const formRef = ref(null)
 const isReadOnly = computed(() => formData.status === 1 || formData.status === 2)
+let submitDebounceTimer = null
 
 onMounted(async () => {
   const id = route.params.id
@@ -913,39 +914,43 @@ const handleClose = () => {
 
 const doSubmit = (status) => {
   if (isReadOnly.value) return
-  formData.status = status
-  formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
-  formData.mealAllowance = String(totalMeal.value.toFixed(2))
-  formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
-  formData.phoneAllowance = String(totalComm.value.toFixed(2))
+  clearTimeout(submitDebounceTimer)
+  submitDebounceTimer = setTimeout(() => {
+    formData.status = status
+    formData.subsidyTotal = String(totalSubsidy.value.toFixed(2))
+    formData.mealAllowance = String(totalMeal.value.toFixed(2))
+    formData.transportationAllowance = String(totalTraffic.value.toFixed(2))
+    formData.phoneAllowance = String(totalComm.value.toFixed(2))
 
-  formData.reimbursementTitle = formData.title
-  formData.reimburserId = formData.employeeId
-  formData.reimDepartmentId = formData.departmentId
-  formData.reimCompanyId = formData.companyId
-  formData.businessTripReason = formData.reason
-  formData.creationTime = formData.createTime || formData.creationTime
-  
-  const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
-  if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
-  
-  const dept = dictStore.departments.find(d => d.reimDepartmentId === formData.reimDepartmentId)
-  if(dept) { formData.reimDepartmentName = dept.reimDepartmentName; formData.reimDepartmentNo = dept.reimDepartmentNo; }
-  
-  const comp = dictStore.companies.find(c => c.reimCompanyId === formData.reimCompanyId)
-  if(comp) { formData.reimCompanyName = comp.reimCompanyName; formData.reimCompanyNo = comp.reimCompanyNo; }
-  
-  const type = dictStore.businessTypes.find(t => t.businessTypeId === formData.businessTypeId)
-  if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
+    formData.reimbursementTitle = formData.title
+    formData.reimburserId = formData.employeeId
+    formData.reimDepartmentId = formData.departmentId
+    formData.reimCompanyId = formData.companyId
+    formData.businessTripReason = formData.reason
+    formData.creationTime = formData.createTime || formData.creationTime
+    
+    const emp = dictStore.employees.find(e => e.reimburserId === formData.reimburserId)
+    if(emp) { formData.reimburserName = emp.reimburserName; formData.reimburserNo = emp.reimburserNo; }
+    
+    const dept = dictStore.departments.find(d => d.reimDepartmentId === formData.reimDepartmentId)
+    if(dept) { formData.reimDepartmentName = dept.reimDepartmentName; formData.reimDepartmentNo = dept.reimDepartmentNo; }
+    
+    const comp = dictStore.companies.find(c => c.reimCompanyId === formData.reimCompanyId)
+    if(comp) { formData.reimCompanyName = comp.reimCompanyName; formData.reimCompanyNo = comp.reimCompanyNo; }
+    
+    const type = dictStore.businessTypes.find(t => t.businessTypeId === formData.businessTypeId)
+    if(type) { formData.businessTypeName = type.businessTypeName; formData.businessTypeNo = type.businessTypeNo; }
 
-  const payload = JSON.parse(JSON.stringify(formData))
-  
-  const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
-  
-  request.then(() => {
-    ElMessage.success(status === 0 ? '保存草稿成功' : '提交成功')
-    closePage()
-  }).catch(err => console.error(err))
+    const payload = JSON.parse(JSON.stringify(formData))
+    
+    const request = formData.id ? updateReimbursement(payload) : addReimbursement(payload)
+    
+    request.then(() => {
+      ElMessage.success(status === 0 ? '保存草稿成功' : '提交成功')
+      closePage()
+    }).catch(err => console.error(err))
+    submitDebounceTimer = null
+  }, 300)
 }
 
 const handleSubmit = () => {
