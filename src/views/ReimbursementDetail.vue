@@ -587,9 +587,40 @@ const openItineraryDialog = (row, index = -1) => {
   itineraryVisible.value = true
 }
 
-const copyItinerary = (row) => {
+const copyTextToClipboard = async (text) => {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', 'readonly')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  document.execCommand('copy')
+  document.body.removeChild(textarea)
+}
+
+const copyItinerary = async (row) => {
   if (isReadOnly.value) return
-  openItineraryDialog(row) // pass row without index to act as copy (new)
+
+  const content = [
+    `出行人员：${getEmployeeDisplay(row.employeeId)}`,
+    `出差日期：${row.startDate} 至 ${row.endDate}`,
+    `行程：${getCityName(row.startCity)} - ${getCityName(row.endCity)}`,
+    `行程说明：${row.reason || ''}`
+  ].join('\n')
+
+  try {
+    await copyTextToClipboard(content)
+    ElMessage.success('已复制到剪贴板')
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('复制失败')
+  }
 }
 
 const deleteItinerary = (index) => {
