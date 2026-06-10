@@ -162,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDictStore } from '../stores/dict'
 import { DocumentDelete, EditPen, MoreFilled, Operation } from '@element-plus/icons-vue'
@@ -186,6 +186,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
+const hasMounted = ref(false)
 
 const tableData = ref([])
 
@@ -237,6 +238,13 @@ const fetchList = async () => {
 
 onMounted(() => {
   fetchList()
+  hasMounted.value = true
+})
+
+onActivated(() => {
+  if (hasMounted.value) {
+    fetchList()
+  }
 })
 
 const handleSearch = () => {

@@ -8,7 +8,8 @@ const router = createRouter({
     {
       path: '/',
       name: 'list',
-      component: List
+      component: List,
+      meta: { keepAlive: true }
     },
     {
       path: '/detail/:id?',

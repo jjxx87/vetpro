@@ -225,7 +225,7 @@
 
     <!-- Footer Buttons -->
     <div class="footer-fixed">
-      <el-button @click="handleClose" class="persistent-blue-btn" :disabled="isReadOnly">关闭</el-button>
+      <el-button @click="handleClose" class="persistent-blue-btn">关闭</el-button>
       <el-button type="primary" @click="handleSubmit" :disabled="isReadOnly">提交</el-button>
     </div>
 
@@ -891,8 +891,12 @@ const clearRemarks = () => {
   })
 }
 
+const closePage = () => {
+  router.back()
+}
+
 const handleClose = () => {
-  if (isReadOnly.value) return
+  if (isReadOnly.value) return closePage()
   ElMessageBox.confirm('是否保存为草稿？', '提示', {
     confirmButtonText: '保存草稿',
     cancelButtonText: '不保存',
@@ -903,7 +907,7 @@ const handleClose = () => {
       doSubmit(0)
     })
     .catch((action) => {
-      if (action === 'cancel') router.back()
+      if (action === 'cancel') closePage()
     })
 }
 
@@ -940,7 +944,7 @@ const doSubmit = (status) => {
   
   request.then(() => {
     ElMessage.success(status === 0 ? '保存草稿成功' : '提交成功')
-    router.push('/')
+    closePage()
   }).catch(err => console.error(err))
 }
 
