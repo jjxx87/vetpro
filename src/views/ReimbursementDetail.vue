@@ -262,7 +262,7 @@
           </el-col>
           <el-col :span="14">
             <el-form-item label="出发到达日期" prop="dateRange">
-              <el-date-picker v-model="itineraryForm.dateRange" type="datetimerange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
+              <el-date-picker v-model="itineraryForm.dateRange" type="datetimerange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss" :disabled-date="disableFutureDate" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -435,6 +435,7 @@ const dictStore = useDictStore()
 const activeNames = ref(['1', '2', '3', '4', '5', '6'])
 const currentDate = new Date().toISOString().split('T')[0]
 import dayjs from 'dayjs'
+const disableFutureDate = (date) => date.getTime() > Date.now()
 
 const formData = reactive({
   id: '',
