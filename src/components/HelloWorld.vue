@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @cn-file
+ * @file src/components/HelloWorld.vue
+ * @desc 组件：可复用 UI/业务组件
+ */
+
 defineProps({
   msg: {
     type: String,

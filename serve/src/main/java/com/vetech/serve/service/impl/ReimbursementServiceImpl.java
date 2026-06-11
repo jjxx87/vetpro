@@ -1,5 +1,12 @@
 package com.vetech.serve.service.impl;
 
+
+/**
+ * @cn-file
+ * 文件：serve/src/main/java/com/vetech/serve/service/impl/ReimbursementServiceImpl.java
+ * 说明：后端服务：业务逻辑处理
+ */
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vetech.serve.entity.Reimbursement;
@@ -19,18 +26,36 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * 报销单服务实现，负责主表与关联明细的统一持久化处理。
+ */
 @Service
 public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, Reimbursement> implements IReimbursementService {
 
+    /**
+     * 行程明细 Mapper。
+     */
     @Autowired
     private ReimbursementItineraryMapper itineraryMapper;
 
+    /**
+     * 补助明细 Mapper。
+     */
     @Autowired
     private ReimbursementSubsidyMapper subsidyMapper;
 
+    /**
+     * 分摊明细 Mapper。
+     */
     @Autowired
     private ReimbursementApportionmentMapper apportionmentMapper;
 
+    /**
+     * 保存报销单主表及其关联的明细数据。
+     *
+     * @param entity 报销单实体
+     * @return 是否保存成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean save(Reimbursement entity) {
@@ -42,6 +67,12 @@ public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, R
         return result;
     }
 
+    /**
+     * 更新报销单主表，并先清空后重建关联明细数据。
+     *
+     * @param entity 报销单实体
+     * @return 是否更新成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean updateById(Reimbursement entity) {
@@ -53,6 +84,12 @@ public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, R
         return result;
     }
 
+    /**
+     * 删除报销单主表前，先删除关联的行程、补助和分摊明细。
+     *
+     * @param id 报销单 ID
+     * @return 是否删除成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean removeById(Serializable id) {
@@ -60,6 +97,12 @@ public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, R
         return super.removeById(id);
     }
 
+    /**
+     * 查询报销单详情，并组装关联的明细数据。
+     *
+     * @param id 报销单 ID
+     * @return 带有明细的报销单实体
+     */
     @Override
     public Reimbursement getById(Serializable id) {
         Reimbursement reimbursement = super.getById(id);
@@ -74,6 +117,11 @@ public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, R
         return reimbursement;
     }
 
+    /**
+     * 保存报销单下的全部关联明细。
+     *
+     * @param entity 报销单实体
+     */
     private void saveNested(Reimbursement entity) {
         String id = entity.getId();
         if (entity.getItineraries() != null) {
@@ -99,6 +147,11 @@ public class ReimbursementServiceImpl extends ServiceImpl<ReimbursementMapper, R
         }
     }
 
+    /**
+     * 删除指定报销单下的全部关联明细。
+     *
+     * @param reimbursementId 报销单 ID
+     */
     private void deleteNested(String reimbursementId) {
         itineraryMapper.delete(new LambdaQueryWrapper<ReimbursementItinerary>()
                 .eq(ReimbursementItinerary::getReimbursementId, reimbursementId));

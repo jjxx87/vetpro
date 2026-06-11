@@ -1,5 +1,12 @@
 package com.vetech.serve.controller;
 
+
+/**
+ * @cn-file
+ * 文件：serve/src/main/java/com/vetech/serve/controller/ReimbursementController.java
+ * 说明：后端控制器：提供 HTTP 接口
+ */
+
 import com.vetech.serve.entity.Reimbursement;
 import com.vetech.serve.entity.ReimbursementApportionment;
 import com.vetech.serve.entity.ReimbursementItinerary;
@@ -25,23 +32,55 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 报销单控制器，提供报销单的增删改查与导出接口。
+ */
 @RestController
 @RequestMapping("/api/reimbursement")
 public class ReimbursementController {
 
+    /**
+     * 报销单业务服务。
+     */
     @Autowired
     private IReimbursementService reimbursementService;
 
+    /**
+     * 新增报销单。
+     *
+     * @param reimbursement 报销单数据
+     * @return 是否保存成功
+     */
     @PostMapping
     public boolean save(@RequestBody Reimbursement reimbursement) {
         return reimbursementService.save(reimbursement);
     }
 
+    /**
+     * 根据主键查询报销单详情。
+     *
+     * @param id 报销单 ID
+     * @return 报销单详情
+     */
     @GetMapping("/{id}")
     public Reimbursement getById(@PathVariable String id) {
         return reimbursementService.getById(id);
     }
 
+    /**
+     * 分页查询报销单列表，并按条件执行模糊或精确筛选。
+     *
+     * @param current 当前页码
+     * @param size 每页条数
+     * @param id 报销单 ID
+     * @param reimbursementTitle 报销标题
+     * @param businessTripReason 出差事由
+     * @param reimCompanyId 费用归属公司 ID
+     * @param reimDepartmentId 报销部门 ID
+     * @param reimburserId 报销人 ID
+     * @param businessTypeIds 业务类型 ID 集合
+     * @return 分页后的报销单列表
+     */
     @GetMapping("/list")
     public IPage<Reimbursement> list(
             @RequestParam(required = false, defaultValue = "1") Integer current,
@@ -66,16 +105,35 @@ public class ReimbursementController {
                 .page(page);
     }
 
+    /**
+     * 更新报销单主数据及其关联明细。
+     *
+     * @param reimbursement 报销单数据
+     * @return 是否更新成功
+     */
     @PutMapping
     public boolean update(@RequestBody Reimbursement reimbursement) {
         return reimbursementService.updateById(reimbursement);
     }
 
+    /**
+     * 删除指定报销单。
+     *
+     * @param id 报销单 ID
+     * @return 是否删除成功
+     */
     @DeleteMapping("/{id}")
     public boolean delete(@PathVariable String id) {
         return reimbursementService.removeById(id);
     }
 
+    /**
+     * 导出指定报销单的 Excel 文件，包含主表、行程、补助和分摊数据。
+     *
+     * @param id 报销单 ID
+     * @param response HTTP 响应对象
+     * @throws IOException 输出流写入异常
+     */
     @GetMapping("/{id}/export")
     public void export(@PathVariable String id, HttpServletResponse response) throws IOException {
         Reimbursement reimbursement = reimbursementService.getById(id);
@@ -128,6 +186,15 @@ public class ReimbursementController {
         }
     }
 
+    /**
+     * 在工作表中按“键值对”形式写入一行数据。
+     *
+     * @param sheet 目标工作表
+     * @param rowIndex 当前行号
+     * @param k 键
+     * @param v 值
+     * @return 下一行行号
+     */
     private int writeKv(Sheet sheet, int rowIndex, String k, String v) {
         Row row = sheet.createRow(rowIndex);
         Cell c0 = row.createCell(0);
@@ -137,6 +204,12 @@ public class ReimbursementController {
         return rowIndex + 1;
     }
 
+    /**
+     * 将行程明细写入指定工作表。
+     *
+     * @param sheet 行程工作表
+     * @param list 行程列表
+     */
     private void writeItineraries(Sheet sheet, List<ReimbursementItinerary> list) {
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("employeeId");
@@ -159,6 +232,12 @@ public class ReimbursementController {
         }
     }
 
+    /**
+     * 将费用分摊明细写入指定工作表。
+     *
+     * @param sheet 分摊工作表
+     * @param list 分摊列表
+     */
     private void writeApportionments(Sheet sheet, List<ReimbursementApportionment> list) {
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("companyId");
@@ -177,6 +256,13 @@ public class ReimbursementController {
         }
     }
 
+    /**
+     * 将补助汇总和逐日补助日历分别写入两个工作表。
+     *
+     * @param subsidySheet 补助汇总工作表
+     * @param calendarSheet 补助日历工作表
+     * @param subsidies 补助列表
+     */
     private void writeSubsidiesAndCalendar(Sheet subsidySheet, Sheet calendarSheet, List<ReimbursementSubsidy> subsidies) {
         Row sHeader = subsidySheet.createRow(0);
         sHeader.createCell(0).setCellValue("employeeId");
@@ -255,14 +341,32 @@ public class ReimbursementController {
         }
     }
 
+    /**
+     * 空值保护，避免字符串为空指针。
+     *
+     * @param s 原始字符串
+     * @return 非空字符串
+     */
     private String nvl(String s) {
         return s == null ? "" : s;
     }
 
+    /**
+     * 将任意对象安全转换为字符串。
+     *
+     * @param v 原始对象
+     * @return 转换后的字符串
+     */
     private String str(Object v) {
         return v == null ? "" : String.valueOf(v);
     }
 
+    /**
+     * 将任意对象安全转换为数值，无法转换时返回零。
+     *
+     * @param v 原始对象
+     * @return 转换后的 BigDecimal
+     */
     private BigDecimal num(Object v) {
         if (v == null) return BigDecimal.ZERO;
         if (v instanceof BigDecimal) return (BigDecimal) v;
@@ -274,6 +378,12 @@ public class ReimbursementController {
         }
     }
 
+    /**
+     * 将任意对象安全转换为布尔值。
+     *
+     * @param v 原始对象
+     * @return 转换后的布尔结果
+     */
     private boolean bool(Object v) {
         if (v == null) return false;
         if (v instanceof Boolean) return (Boolean) v;

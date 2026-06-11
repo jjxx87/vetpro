@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @cn-file
+ * @file src/components/TheWelcome.vue
+ * @desc 组件：可复用 UI/业务组件
+ */
+
 import WelcomeItem from './WelcomeItem.vue'
 import DocumentationIcon from './icons/IconDocumentation.vue'
 import ToolingIcon from './icons/IconTooling.vue'

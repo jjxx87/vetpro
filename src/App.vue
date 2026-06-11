@@ -10,4 +10,10 @@
 </template>
 
 <script setup>
+/**
+ * @cn-file
+ * @file src/App.vue
+ * @desc 根组件：应用顶层布局与路由出口
+ */
+
 </script>

@@ -1,3 +1,9 @@
+/**
+ * @cn-file
+ * @file src/main.js
+ * @desc 入口：前端应用启动与全局初始化
+ */
+
 import './assets/main.css'
 
 import { createApp } from 'vue'

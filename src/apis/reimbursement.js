@@ -1,3 +1,9 @@
+/**
+ * @cn-file
+ * @file src/apis/reimbursement.js
+ * @desc 接口：后端 API 封装与参数组装
+ */
+
 import request from '../utils/request'
 
 // 获取报销单列表

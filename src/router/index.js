@@ -1,3 +1,9 @@
+/**
+ * @cn-file
+ * @file src/router/index.js
+ * @desc 路由：页面路由配置
+ */
+
 import { createRouter, createWebHistory } from 'vue-router'
 import List from '../views/ReimbursementList.vue'
 import Detail from '../views/ReimbursementDetail.vue'

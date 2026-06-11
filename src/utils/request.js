@@ -1,3 +1,9 @@
+/**
+ * @cn-file
+ * @file src/utils/request.js
+ * @desc 工具：通用工具方法与请求封装
+ */
+
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 

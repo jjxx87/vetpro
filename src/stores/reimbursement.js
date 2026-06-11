@@ -1,3 +1,9 @@
+/**
+ * @cn-file
+ * @file src/stores/reimbursement.js
+ * @desc 状态：全局状态管理（Pinia）
+ */
+
 import { defineStore } from 'pinia'
 
 export const useReimbursementStore = defineStore('reimbursement', {

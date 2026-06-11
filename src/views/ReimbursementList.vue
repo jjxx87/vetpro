@@ -162,6 +162,12 @@
 </template>
 
 <script setup>
+/**
+ * @cn-file
+ * @file src/views/ReimbursementList.vue
+ * @desc 页面：业务页面逻辑与交互
+ */
+
 import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDictStore } from '../stores/dict'
@@ -190,6 +196,9 @@ const hasMounted = ref(false)
 
 const tableData = ref([])
 
+/**
+ * 根据当前筛选条件和分页参数获取报销单列表。
+ */
 const fetchList = async () => {
   loading.value = true
   try {
@@ -236,22 +245,34 @@ const fetchList = async () => {
   }
 }
 
+/**
+ * 页面首次挂载时加载列表，并记录已完成初始化。
+ */
 onMounted(() => {
   fetchList()
   hasMounted.value = true
 })
 
+/**
+ * 页面从缓存激活时重新刷新列表数据。
+ */
 onActivated(() => {
   if (hasMounted.value) {
     fetchList()
   }
 })
 
+/**
+ * 执行搜索前将页码重置到第一页并重新查询。
+ */
 const handleSearch = () => {
   currentPage.value = 1
   fetchList()
 }
 
+/**
+ * 清空筛选条件后重新执行搜索。
+ */
 const handleClear = () => {
   searchForm.value = {
     reimNo: '',
@@ -265,14 +286,23 @@ const handleClear = () => {
   handleSearch()
 }
 
+/**
+ * 跳转到新增报销单详情页。
+ */
 const handleAdd = () => {
   router.push('/detail')
 }
 
+/**
+ * 跳转到指定报销单的详情编辑页。
+ */
 const handleEdit = (row) => {
   router.push(`/detail/${row.id}`)
 }
 
+/**
+ * 删除指定报销单，删除成功后刷新列表。
+ */
 const handleDelete = (row) => {
   ElMessageBox.confirm('确认删除该报销单吗?', '提示', { type: 'warning' }).then(async () => {
     try {
@@ -285,6 +315,9 @@ const handleDelete = (row) => {
   }).catch(() => {})
 }
 
+/**
+ * 将指定报销单作废，作废成功后刷新列表。
+ */
 const handleVoid = (row) => {
   ElMessageBox.confirm('确认作废该报销单吗?', '提示', { type: 'warning' }).then(async () => {
     try {
@@ -297,6 +330,9 @@ const handleVoid = (row) => {
   }).catch(() => {})
 }
 
+/**
+ * 导出指定报销单的 Excel 文件，并按标题生成下载文件名。
+ */
 const handlePrint = (row) => {
   exportReimbursementExcel(row.id).then((blob) => {
     const safeTitle = String(row.reimbursementTitle || '').replace(/[\\/:*?"<>|]/g, '_').slice(0, 50)
@@ -315,33 +351,51 @@ const handlePrint = (row) => {
   })
 }
 
+/**
+ * 处理每页条数变化并重新加载第一页数据。
+ */
 const handleSizeChange = (val) => {
   pageSize.value = val
   currentPage.value = 1
   fetchList()
 }
 
+/**
+ * 处理页码切换并加载对应分页数据。
+ */
 const handleCurrentChange = (val) => {
   currentPage.value = val
   fetchList()
 }
 
 // Display helpers
+/**
+ * 根据报销人 ID 生成“姓名[工号]”格式的展示文本。
+ */
 const getEmployeeDisplay = (id) => {
   const emp = dictStore.employees.find(e => e.reimburserId === id)
   return emp ? `${emp.reimburserName}[${emp.reimburserNo}]` : ''
 }
 
+/**
+ * 根据部门 ID 生成“[部门编号]部门名称”格式的展示文本。
+ */
 const getDepartmentDisplay = (id) => {
   const dept = dictStore.departments.find(d => d.reimDepartmentId === id)
   return dept ? `[${dept.reimDepartmentNo}]${dept.reimDepartmentName}` : ''
 }
 
+/**
+ * 根据公司 ID 获取费用归属公司名称。
+ */
 const getCompanyDisplay = (id) => {
   const comp = dictStore.companies.find(c => c.reimCompanyId === id)
   return comp ? comp.reimCompanyName : ''
 }
 
+/**
+ * 根据业务类型 ID 获取业务类型名称。
+ */
 const getBusinessTypeDisplay = (id) => {
   const type = dictStore.businessTypes.find(t => t.businessTypeId === id)
   return type ? type.businessTypeName : ''

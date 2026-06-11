@@ -421,6 +421,12 @@
 </template>
 
 <script setup>
+/**
+ * @cn-file
+ * @file src/views/ReimbursementDetail.vue
+ * @desc 页面：业务页面逻辑与交互
+ */
+
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useDictStore } from '../stores/dict'
@@ -435,6 +441,9 @@ const dictStore = useDictStore()
 const activeNames = ref(['1', '2', '3', '4', '5', '6'])
 const currentDate = new Date().toISOString().split('T')[0]
 import dayjs from 'dayjs'
+/**
+ * 禁用未来日期，避免选择晚于当前时间的行程日期。
+ */
 const disableFutureDate = (date) => date.getTime() > Date.now()
 
 const formData = reactive({
@@ -477,6 +486,9 @@ const formRef = ref(null)
 const isReadOnly = computed(() => formData.status === 1 || formData.status === 2)
 let submitDebounceTimer = null
 
+/**
+ * 页面初始化时根据路由参数加载报销详情，并处理表单回显映射。
+ */
 onMounted(async () => {
   const id = route.params.id
   console.log(id);
@@ -537,14 +549,23 @@ onMounted(async () => {
 })
 
 // Helpers
+/**
+ * 根据报销人 ID 生成“姓名(工号)”格式的展示文本。
+ */
 const getEmployeeDisplay = (id) => {
   const emp = dictStore.employees.find(e => e.reimburserId === id)
   return emp ? `${emp.reimburserName}(${emp.reimburserNo})` : ''
 }
+/**
+ * 根据城市编码获取城市名称。
+ */
 const getCityName = (id) => {
   const city = dictStore.cities.find(c => c.cityNo === id)
   return city ? city.cityName : ''
 }
+/**
+ * 根据业务类型 ID 获取业务类型名称。
+ */
 const getBusinessTypeDisplay = (id) => {
   const type = dictStore.businessTypes.find(t => t.businessTypeId === id)
   return type ? type.businessTypeName : ''
@@ -571,6 +592,9 @@ const itineraryRules = {
   reason: [{ required: true, message: '请输入行程说明', trigger: 'blur' }]
 }
 
+/**
+ * 打开补录行程弹窗，支持新增和编辑两种模式。
+ */
 const openItineraryDialog = (row, index = -1) => {
   if (isReadOnly.value) return
   editItineraryIndex.value = index
@@ -588,6 +612,9 @@ const openItineraryDialog = (row, index = -1) => {
   itineraryVisible.value = true
 }
 
+/**
+ * 将指定文本复制到剪贴板，兼容现代接口与旧版降级方案。
+ */
 const copyTextToClipboard = async (text) => {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text)
@@ -605,6 +632,9 @@ const copyTextToClipboard = async (text) => {
   document.body.removeChild(textarea)
 }
 
+/**
+ * 复制单条行程信息，便于用户快速复用或外部粘贴。
+ */
 const copyItinerary = async (row) => {
   if (isReadOnly.value) return
 
@@ -624,6 +654,9 @@ const copyItinerary = async (row) => {
   }
 }
 
+/**
+ * 删除指定行程，并同步移除对应的补助信息后重算分摊。
+ */
 const deleteItinerary = (index) => {
   if (isReadOnly.value) return
   ElMessageBox.confirm('是否确定删除该行程信息？', '提示', { type: 'warning' }).then(() => {
@@ -633,6 +666,9 @@ const deleteItinerary = (index) => {
   })
 }
 
+/**
+ * 校验并保存补录行程，保存后自动生成对应补助数据。
+ */
 const saveItinerary = () => {
   if (isReadOnly.value) return
   itineraryFormRef.value.validate((valid) => {
@@ -677,6 +713,9 @@ const saveItinerary = () => {
   })
 }
 
+/**
+ * 根据补助城市获取餐补、交补和通讯补助标准。
+ */
 const getSubsidyStandard = (cityNo) => {
   const city = dictStore.cities.find(c => c.cityNo === cityNo)
   const type = city ? city.cityType : '3'
@@ -684,6 +723,9 @@ const getSubsidyStandard = (cityNo) => {
   return { meal, traffic: 40, comm: 40 }
 }
 
+/**
+ * 根据行程信息生成逐日补助日历及补助汇总数据。
+ */
 const generateSubsidy = (index, itinerary, days) => {
   const standard = getSubsidyStandard(itinerary.endCity)
   const calendar = []
@@ -723,6 +765,9 @@ const subsidyVisible = ref(false)
 const currentSubsidy = ref(null)
 const currentSubsidyIndex = ref(-1)
 
+/**
+ * 打开补助编辑弹窗，并复制当前行的补助数据用于临时编辑。
+ */
 const openSubsidyDialog = (row, index) => {
   if (isReadOnly.value) return
   currentSubsidyIndex.value = index
@@ -755,6 +800,9 @@ const currentSubsidyAmount = computed(() => {
 const calendarSelectAll = ref(true)
 const colSelect = reactive({ meal: true, traffic: true, comm: true })
 
+/**
+ * 处理补助日历全选状态，同步整行及各补助项的勾选结果。
+ */
 const handleCalendarSelectAll = (val) => {
   if (isReadOnly.value) return
   colSelect.meal = val
@@ -773,6 +821,9 @@ const handleCalendarSelectAll = (val) => {
   })
 }
 
+/**
+ * 处理单日行选择状态，并同步当天各类补助的勾选与金额。
+ */
 const handleRowSelectChange = (row) => {
   if (isReadOnly.value) return
   row.mealSelected = row.selected
@@ -786,6 +837,9 @@ const handleRowSelectChange = (row) => {
   updateCalendarSelectionState()
 }
 
+/**
+ * 按补助类型批量勾选或取消某一列的补助项。
+ */
 const handleColSelect = (type) => {
   if (isReadOnly.value) return
   const val = colSelect[type]
@@ -799,6 +853,9 @@ const handleColSelect = (type) => {
   updateCalendarSelectionState()
 }
 
+/**
+ * 处理单元格补助勾选变化，并补齐默认金额。
+ */
 const handleCellSelect = (row) => {
   if (isReadOnly.value) return
   if (row.mealSelected && row.mealAmount == null) row.mealAmount = row.mealStandard
@@ -811,6 +868,9 @@ const handleCellSelect = (row) => {
   updateCalendarSelectionState()
 }
 
+/**
+ * 根据当前日历勾选结果刷新全选与列选择状态。
+ */
 const updateCalendarSelectionState = () => {
   if (!currentSubsidy.value) return
   calendarSelectAll.value = currentSubsidy.value.calendar.every(r => r.mealSelected && r.trafficSelected && r.commSelected)
@@ -819,6 +879,9 @@ const updateCalendarSelectionState = () => {
   colSelect.comm = currentSubsidy.value.calendar.every(r => r.commSelected)
 }
 
+/**
+ * 保存补助弹窗中的编辑结果，并回写到主表单数据。
+ */
 const saveSubsidy = () => {
   if (isReadOnly.value) return
   currentSubsidy.value.subsidyAmount = currentSubsidyAmount.value
@@ -836,16 +899,25 @@ const totalTraffic = computed(() => formData.subsidies.reduce((sum, item) => sum
 const totalComm = computed(() => formData.subsidies.reduce((sum, item) => sum + item.calendar.reduce((s, r) => s + (r.commSelected ? r.commAmount : 0), 0), 0))
 
 // Apportionment
+/**
+ * 监听补助总额变化，自动刷新费用分摊金额。
+ */
 watch(totalSubsidy, (newVal) => {
   recalculateApportionment()
 })
 
+/**
+ * 新增一条费用分摊记录，并重新计算默认比例。
+ */
 const addApportionment = () => {
   if (isReadOnly.value) return
   formData.apportionments.push({ companyId: '', projectId: '', percent: 0, amount: 0 })
   recalculateApportionmentPercent()
 }
 
+/**
+ * 删除指定分摊行，并在删除后重新计算比例与金额。
+ */
 const deleteApportionment = (index) => {
   if (isReadOnly.value) return
   if (formData.apportionments.length <= 1) {
@@ -857,6 +929,9 @@ const deleteApportionment = (index) => {
   })
 }
 
+/**
+ * 将当前分摊记录按条数平均分配比例和金额。
+ */
 const evenApportion = () => {
   if (isReadOnly.value) return
   const count = formData.apportionments.length
@@ -876,10 +951,16 @@ const evenApportion = () => {
   formData.apportionments[0].amount = Number((totalSubsidy.value - aSum).toFixed(2))
 }
 
+/**
+ * 处理分摊比例变化，并触发重新计算。
+ */
 const handleApportionPercentChange = (index) => {
   recalculateApportionmentPercent()
 }
 
+/**
+ * 按当前分摊比例重新计算首行比例与各行分摊金额。
+ */
 const recalculateApportionmentPercent = () => {
   if (formData.apportionments.length === 0) return
   if (formData.apportionments.length === 1) {
@@ -913,10 +994,16 @@ const recalculateApportionmentPercent = () => {
   formData.apportionments[0].amount = Number((totalSubsidy.value - aSum).toFixed(2))
 }
 
+/**
+ * 统一封装分摊重算入口，便于行程或补助变化后调用。
+ */
 const recalculateApportionment = () => {
   recalculateApportionmentPercent()
 }
 
+/**
+ * 清空备注信息，操作前需要用户二次确认。
+ */
 const clearRemarks = () => {
   if (isReadOnly.value) return
   ElMessageBox.confirm('是否确定删除备注？', '提示', { type: 'warning' }).then(() => {
@@ -924,10 +1011,16 @@ const clearRemarks = () => {
   })
 }
 
+/**
+ * 关闭当前页面并返回上一页。
+ */
 const closePage = () => {
   router.back()
 }
 
+/**
+ * 处理关闭按钮逻辑，支持保存草稿后退出或直接离开。
+ */
 const handleClose = () => {
   if (isReadOnly.value) return closePage()
   ElMessageBox.confirm('是否保存为草稿？', '提示', {
@@ -944,6 +1037,9 @@ const handleClose = () => {
     })
 }
 
+/**
+ * 按指定状态提交报销单，并在提交前补齐后端所需字段。
+ */
 const doSubmit = (status) => {
   if (isReadOnly.value) return
   clearTimeout(submitDebounceTimer)
@@ -985,6 +1081,9 @@ const doSubmit = (status) => {
   }, 300)
 }
 
+/**
+ * 提交前执行表单、行程和分摊信息校验，通过后正式提交。
+ */
 const handleSubmit = () => {
   if (isReadOnly.value) return
   formRef.value.validate((valid) => {
